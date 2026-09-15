@@ -1161,6 +1161,21 @@ class DataStorageService {
     }));
   }
 
+  public togglePinPengumuman(id: string) {
+    this.updateDatabase((prev) => {
+      const list = (prev.pengumuman || []).map((p) => {
+        if (p.id === id) {
+          return { ...p, disematkan: !p.disematkan };
+        }
+        return p;
+      });
+      return {
+        ...prev,
+        pengumuman: list,
+      };
+    });
+  }
+
   public markPengumumanDibaca(id: string, userId: string) {
     this.updateDatabase((prev) => {
       const list = (prev.pengumuman || []).map((p) => {

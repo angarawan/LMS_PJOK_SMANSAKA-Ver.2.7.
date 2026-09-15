@@ -24,6 +24,7 @@ import {
   FileSpreadsheet,
   Sparkles,
   Camera,
+  Megaphone,
 } from 'lucide-react';
 import { UserRole, User as UserType } from '../types';
 import { dataStorage } from '../services/dataStorage';
@@ -140,6 +141,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           { id: 'quiz', label: 'Quiz & Asesmen', icon: <CheckCircle className="w-5 h-5" /> },
           { id: 'praktik', label: 'Penilaian Praktik', icon: <Activity className="w-5 h-5" /> },
           { id: 'refleksi', label: 'Refleksi Pembelajaran', icon: <Sparkles className="w-5 h-5" /> },
+          { id: 'pengumuman', label: 'Kelola Pengumuman', icon: <Megaphone className="w-5 h-5 text-amber-400" /> },
           { id: 'jurnal', label: 'Jurnal Mengajar', icon: <FileText className="w-5 h-5" /> },
           { id: 'rekap-jurnal', label: 'Rekapan Jurnal', icon: <FileSpreadsheet className="w-5 h-5 text-teal-400" /> },
         ],
@@ -182,6 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           { id: 'materi', label: 'Materi PJOK', icon: <BookMarked className="w-5 h-5" /> },
           { id: 'tugas', label: 'Tugas PJOK', icon: <ClipboardList className="w-5 h-5" /> },
           { id: 'quiz', label: 'Bank & Kelola Quiz', icon: <CheckCircle className="w-5 h-5" /> },
+          { id: 'pengumuman', label: 'Kelola Pengumuman', icon: <Megaphone className="w-5 h-5 text-amber-400" /> },
         ],
       },
       {
@@ -212,31 +215,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ];
   };
 
-  const getMuridSections = (): MenuSection[] => [
-    {
-      title: 'Utama',
-      items: [
-        { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'Aktivitas Belajar',
-      items: [
-        { id: 'materi-saya', label: 'Materi Pembelajaran', icon: <BookMarked className="w-5 h-5" /> },
-        { id: 'tugas-saya', label: 'Tugas Saya', icon: <ClipboardList className="w-5 h-5" /> },
-        { id: 'quiz-saya', label: 'Quiz & Asesmen', icon: <CheckCircle className="w-5 h-5" /> },
-        { id: 'refleksi-saya', label: 'Refleksi Belajar', icon: <Sparkles className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'Akademik & Profil',
-      items: [
-        { id: 'nilai-saya', label: 'Transkrip Nilai', icon: <Award className="w-5 h-5" /> },
-        { id: 'presensi-saya', label: 'Riwayat Kehadiran', icon: <Calendar className="w-5 h-5" /> },
-        { id: 'profil-saya', label: 'Profil Saya', icon: <User className="w-5 h-5" /> },
-      ],
-    },
-  ];
+  const getMuridSections = (): MenuSection[] => {
+    const dbData = dataStorage.getDatabase();
+    const myId = currentUser?.id || '';
+    const myKelasId = currentUser?.kelasId || '';
+    const unreadCount = (dbData.pengumuman || []).filter((p) => {
+      if (p.targetRole && p.targetRole !== 'ALL' && p.targetRole !== 'MURID') return false;
+      if (p.targetKelasId && p.targetKelasId !== 'ALL' && myKelasId && p.targetKelasId !== myKelasId) {
+        return false;
+      }
+      return !(p.dibacaOleh || []).includes(myId);
+    }).length;
+
+    return [
+      {
+        title: 'Utama',
+        items: [
+          { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+          {
+            id: 'pengumuman',
+            label: 'Pengumuman',
+            icon: <Megaphone className="w-5 h-5 text-amber-400" />,
+            badge: unreadCount > 0 ? unreadCount : undefined,
+          },
+        ],
+      },
+      {
+        title: 'Aktivitas Belajar',
+        items: [
+          { id: 'materi-saya', label: 'Materi Pembelajaran', icon: <BookMarked className="w-5 h-5" /> },
+          { id: 'tugas-saya', label: 'Tugas Saya', icon: <ClipboardList className="w-5 h-5" /> },
+          { id: 'quiz-saya', label: 'Quiz & Asesmen', icon: <CheckCircle className="w-5 h-5" /> },
+          { id: 'refleksi-saya', label: 'Refleksi Belajar', icon: <Sparkles className="w-5 h-5" /> },
+        ],
+      },
+      {
+        title: 'Akademik & Profil',
+        items: [
+          { id: 'nilai-saya', label: 'Transkrip Nilai', icon: <Award className="w-5 h-5" /> },
+          { id: 'presensi-saya', label: 'Riwayat Kehadiran', icon: <Calendar className="w-5 h-5" /> },
+          { id: 'profil-saya', label: 'Profil Saya', icon: <User className="w-5 h-5" /> },
+        ],
+      },
+    ];
+  };
 
   const sections =
     role === 'ADMIN' ? getAdminSections() : role === 'GURU' ? getGuruSections() : getMuridSections();

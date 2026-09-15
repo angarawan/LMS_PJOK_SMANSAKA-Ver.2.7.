@@ -506,19 +506,33 @@ export function getTeacherAssignedClasses(teacher: User | null | undefined, allK
   return allKelas;
 }
 
+export type KategoriPengumuman = 'Penting' | 'Tugas' | 'Materi' | 'Informasi';
+
 export interface Pengumuman {
   id: string;
   judul: string;
   isi: string;
+  kategori?: KategoriPengumuman;
+  disematkan?: boolean; // Prioritas disematkan (pinned)
   targetRole?: 'ALL' | 'MURID' | 'GURU';
   targetKelasId?: string; // 'ALL' or specific kelas id e.g. 'cls-xi-1'
   targetKelasNama?: string;
   prioritas?: 'Biasa' | 'Penting' | 'Mendesak';
   lampiranUrl?: string;
+  namaLampiran?: string;
   guruId: string;
   guruNama: string;
+  guruNip?: string;
+  guruAvatar?: string;
+  guruMataPelajaran?: string;
   tanggalDibuat: string; // ISO string
   dibacaOleh?: string[]; // user IDs who have read this announcement
+  tautanAksi?: {
+    label: string;
+    menuTarget?: string; // e.g. 'tugas-saya', 'materi-saya', 'quiz-saya'
+    targetId?: string;
+    url?: string;
+  };
 }
 
 /**
