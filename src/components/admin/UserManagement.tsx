@@ -484,9 +484,21 @@ export const UserManagement: React.FC<UserManagementProps> = ({ db, initialTab =
                 <tr>
                   <td
                     colSpan={activeTab === 'MURID' ? 8 : activeTab === 'GURU' ? 7 : 5}
-                    className="text-center py-8 text-slate-400"
+                    className="text-center py-12 text-slate-400"
                   >
-                    Tidak ada data pengguna ditemukan.
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <GraduationCap className="w-8 h-8 text-slate-300" />
+                      <p className="font-semibold text-slate-600 text-sm">
+                        {activeTab === 'MURID'
+                          ? 'Belum Ada Data Murid (Database Kosong)'
+                          : 'Tidak ada data pengguna ditemukan'}
+                      </p>
+                      <p className="text-xs text-slate-400 max-w-sm">
+                        {activeTab === 'MURID'
+                          ? 'Semua data murid telah dikosongkan sesuai instruksi. Silakan isi data secara manual dengan tombol "Tambah Pengguna" atau unggah file CSV/Spreadsheet.'
+                          : 'Silakan sesuaikan kata kunci pencarian atau tambahkan akun pengguna baru.'}
+                      </p>
+                    </div>
                   </td>
                 </tr>
               ) : (

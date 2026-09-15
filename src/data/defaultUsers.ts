@@ -32,26 +32,6 @@ export const RAW_USERS_CSV_DATA: StudentCSVRecord[] = [
     status: 'Aktif',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80',
   },
-  {
-    id: 'usr-guru-2',
-    username: 'ratna',
-    role: 'GURU',
-    name: 'Ratna Sartika, S.Pd.',
-    nip: '19901020 201502 2 004',
-    email: 'ratna.pjok@sman1olahraga.sch.id',
-    status: 'Aktif',
-    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 'usr-guru-3',
-    username: 'haryono',
-    role: 'GURU',
-    name: 'Haryono, S.Pd.Jas',
-    nip: '19820512 200801 1 015',
-    email: 'haryono.pjok@sman1olahraga.sch.id',
-    status: 'Aktif',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&auto=format&fit=crop&q=80',
-  },
 ];
 
 export const DEFAULT_USERS: User[] = RAW_USERS_CSV_DATA.map((r) => {
@@ -72,19 +52,9 @@ export const DEFAULT_USERS: User[] = RAW_USERS_CSV_DATA.map((r) => {
   if (isAdmin || isGuru) {
     user.nip = r.nip;
     if (isGuru) {
-      if (r.username === 'ratna') {
-        user.mataPelajaran = 'PJOK Kelas X (Fase E)';
-        user.kelasDiampuIds = ['cls-x-1', 'cls-x-2', 'cls-x-3', 'cls-x-4'];
-        user.kelasDiampu = ['X 1', 'X 2', 'X 3', 'X 4'];
-      } else if (r.username === 'haryono') {
-        user.mataPelajaran = 'PJOK Kelas XII (Fase F)';
-        user.kelasDiampuIds = ['cls-xii-1', 'cls-xii-2', 'cls-xii-3', 'cls-xii-4'];
-        user.kelasDiampu = ['XII 1', 'XII 2', 'XII 3', 'XII 4'];
-      } else {
-        user.mataPelajaran = 'PJOK Kelas XI (Fase F)';
-        user.kelasDiampuIds = ['cls-xi-1', 'cls-xi-2', 'cls-xi-3', 'cls-xi-4', 'cls-xi-5', 'cls-xi-6', 'cls-xi-7'];
-        user.kelasDiampu = ['XI 1', 'XI 2', 'XI 3', 'XI 4', 'XI 5', 'XI 6', 'XI 7'];
-      }
+      user.mataPelajaran = 'PJOK';
+      user.kelasDiampuIds = [];
+      user.kelasDiampu = [];
     }
   } else {
     user.nis = r.nip;

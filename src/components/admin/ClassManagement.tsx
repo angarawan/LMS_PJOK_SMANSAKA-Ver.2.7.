@@ -113,80 +113,102 @@ export const ClassManagement: React.FC<ClassManagementProps> = ({ db }) => {
       </div>
 
       {/* Class Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {db.kelas.map((k) => {
-          const actualStudents = db.users.filter((u) => u.kelasId === k.id).length;
-          return (
-            <div
-              key={k.id}
-              className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 flex items-center justify-center font-extrabold text-sm">
-                      {k.nama}
+      {db.kelas.length === 0 ? (
+        <div className="bg-white rounded-3xl p-10 border border-dashed border-slate-300 text-center flex flex-col items-center justify-center space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center border border-teal-100">
+            <School className="w-7 h-7" />
+          </div>
+          <div className="max-w-md">
+            <h3 className="text-base font-bold text-slate-800">Semua Data Kelas Bersih (Kosong)</h3>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+              Database kelas saat ini masih kosong sesuai permintaan reset. Silakan tambahkan kelas secara manual menggunakan tombol di atas atau melalui unggah data.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleOpenAdd}
+            className="mt-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            Tambah Kelas Pertama
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {db.kelas.map((k) => {
+            const actualStudents = db.users.filter((u) => u.kelasId === k.id).length;
+            return (
+              <div
+                key={k.id}
+                className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md transition-all space-y-4 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 border border-sky-200 flex items-center justify-center font-extrabold text-sm">
+                        {k.nama}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-extrabold text-slate-800 leading-tight">
+                          Kelas {k.nama}
+                        </h3>
+                        <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          Tingkat {k.tingkat} • TP {k.tahunPelajaran}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-base font-extrabold text-slate-800 leading-tight">
-                        Kelas {k.nama}
-                      </h3>
-                      <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        Tingkat {k.tingkat} • TP {k.tahunPelajaran}
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEdit(k)}
+                        className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors"
+                        title="Edit Kelas"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(k.id, k.nama)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Hapus Kelas"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
+                    <div className="flex items-center justify-between text-slate-600">
+                      <span className="text-slate-400">Wali Kelas:</span>
+                      <span className="font-semibold text-slate-800 truncate max-w-[170px]">
+                        {k.waliKelasNama}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-600">
+                      <span className="text-slate-400">Guru PJOK:</span>
+                      <span className="font-semibold text-emerald-700 truncate max-w-[170px]">
+                        {k.guruPengampuNama}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-600">
+                      <span className="text-slate-400">Jumlah Siswa:</span>
+                      <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
+                        {actualStudents > 0 ? actualStudents : k.totalMurid} Murid
                       </span>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleOpenEdit(k)}
-                      className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors"
-                      title="Edit Kelas"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(k.id, k.nama)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                      title="Hapus Kelas"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span className="text-slate-400">Wali Kelas:</span>
-                    <span className="font-semibold text-slate-800 truncate max-w-[170px]">
-                      {k.waliKelasNama}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span className="text-slate-400">Guru PJOK:</span>
-                    <span className="font-semibold text-emerald-700 truncate max-w-[170px]">
-                      {k.guruPengampuNama}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span className="text-slate-400">Jumlah Siswa:</span>
-                    <span className="font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
-                      {actualStudents > 0 ? actualStudents : k.totalMurid} Murid
-                    </span>
-                  </div>
+                <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-emerald-500 h-full rounded-full"
+                    style={{ width: `${Math.min(100, Math.round(((actualStudents || k.totalMurid) / 36) * 100))}%` }}
+                  />
                 </div>
               </div>
-
-              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div
-                  className="bg-emerald-500 h-full rounded-full"
-                  style={{ width: `${Math.min(100, Math.round(((actualStudents || k.totalMurid) / 36) * 100))}%` }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Add / Edit Class Modal */}
       {isModalOpen && (

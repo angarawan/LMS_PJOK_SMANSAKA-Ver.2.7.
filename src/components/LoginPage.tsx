@@ -202,7 +202,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 Untuk siswa atau guru yang lupa password, silakan hubungi operator sekolah atau admin lab komputer:
               </p>
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-slate-300">
-                <p>• <strong>Admin:</strong> Pak Budi Santoso, S.Pd., M.Pd.</p>
+                <p>• <strong>Admin:</strong> I Ketut Agus Nova Anggarawan, S.Pd., Gr.</p>
                 <p>• <strong>Operator:</strong> Ruang Kurikulum / Lab Komputer</p>
                 <p>• <strong>Format Login Siswa:</strong> Gunakan NIS terdaftar</p>
                 <p>• <strong>Format Login Guru:</strong> Gunakan NIP terdaftar</p>

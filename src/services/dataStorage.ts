@@ -71,7 +71,7 @@ export interface LMSDatabase {
   isNilaiPresensiReset?: boolean;
 }
 
-const STORAGE_KEY = 'lms_pjok_db_v5';
+const STORAGE_KEY = 'lms_pjok_db_v6_clean';
 
 const DEFAULT_QUIZ_SOAL: Soal[] = [
   {
@@ -221,207 +221,8 @@ export const INITIAL_DATABASE: LMSDatabase = {
     autoSyncSpreadsheet: true,
   },
   users: DEFAULT_USERS,
-  kelas: [
-    // --- TINGKAT X (FASE E) ---
-    {
-      id: 'cls-x-1',
-      nama: 'X 1',
-      tingkat: 'X',
-      waliKelasId: 'usr-guru-2',
-      waliKelasNama: 'Ratna Sartika, S.Pd.',
-      guruPengampuId: 'usr-guru-2',
-      guruPengampuNama: 'Ratna Sartika, S.Pd.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-x-2',
-      nama: 'X 2',
-      tingkat: 'X',
-      waliKelasId: 'usr-guru-2',
-      waliKelasNama: 'Ratna Sartika, S.Pd.',
-      guruPengampuId: 'usr-guru-2',
-      guruPengampuNama: 'Ratna Sartika, S.Pd.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-x-3',
-      nama: 'X 3',
-      tingkat: 'X',
-      waliKelasId: 'usr-guru-2',
-      waliKelasNama: 'Ratna Sartika, S.Pd.',
-      guruPengampuId: 'usr-guru-2',
-      guruPengampuNama: 'Ratna Sartika, S.Pd.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-x-4',
-      nama: 'X 4',
-      tingkat: 'X',
-      waliKelasId: 'usr-guru-2',
-      waliKelasNama: 'Ratna Sartika, S.Pd.',
-      guruPengampuId: 'usr-guru-2',
-      guruPengampuNama: 'Ratna Sartika, S.Pd.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-
-    // --- TINGKAT XI (FASE F) ---
-    {
-      id: 'cls-xi-1',
-      nama: 'XI 1',
-      tingkat: 'XI',
-      waliKelasId: 'usr-guru-1',
-      waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruPengampuId: 'usr-guru-1',
-      guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xi-2',
-      nama: 'XI 2',
-      tingkat: 'XI',
-      waliKelasId: 'usr-guru-1',
-      waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruPengampuId: 'usr-guru-1',
-      guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xi-3',
-      nama: 'XI 3',
-      tingkat: 'XI',
-      waliKelasId: 'usr-guru-1',
-      waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruPengampuId: 'usr-guru-1',
-      guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xi-4',
-      nama: 'XI 4',
-      tingkat: 'XI',
-      waliKelasId: 'usr-guru-1',
-      waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruPengampuId: 'usr-guru-1',
-      guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xi-5',
-      nama: 'XI 5',
-      tingkat: 'XI',
-      waliKelasId: 'usr-guru-1',
-      waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruPengampuId: 'usr-guru-1',
-      guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xi-6',
-      nama: 'XI 6',
-      tingkat: 'XI',
-      waliKelasId: 'usr-guru-1',
-      waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruPengampuId: 'usr-guru-1',
-      guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xi-7',
-      nama: 'XI 7',
-      tingkat: 'XI',
-      waliKelasId: 'usr-guru-1',
-      waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruPengampuId: 'usr-guru-1',
-      guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-
-    // --- TINGKAT XII (FASE F) ---
-    {
-      id: 'cls-xii-1',
-      nama: 'XII 1',
-      tingkat: 'XII',
-      waliKelasId: 'usr-guru-3',
-      waliKelasNama: 'Haryono, S.Pd.Jas',
-      guruPengampuId: 'usr-guru-3',
-      guruPengampuNama: 'Haryono, S.Pd.Jas',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xii-2',
-      nama: 'XII 2',
-      tingkat: 'XII',
-      waliKelasId: 'usr-guru-3',
-      waliKelasNama: 'Haryono, S.Pd.Jas',
-      guruPengampuId: 'usr-guru-3',
-      guruPengampuNama: 'Haryono, S.Pd.Jas',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xii-3',
-      nama: 'XII 3',
-      tingkat: 'XII',
-      waliKelasId: 'usr-guru-3',
-      waliKelasNama: 'Haryono, S.Pd.Jas',
-      guruPengampuId: 'usr-guru-3',
-      guruPengampuNama: 'Haryono, S.Pd.Jas',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-    {
-      id: 'cls-xii-4',
-      nama: 'XII 4',
-      tingkat: 'XII',
-      waliKelasId: 'usr-guru-3',
-      waliKelasNama: 'Haryono, S.Pd.Jas',
-      guruPengampuId: 'usr-guru-3',
-      guruPengampuNama: 'Haryono, S.Pd.Jas',
-      tahunPelajaran: '2026/2027',
-      totalMurid: 0,
-    },
-  ],
-  mataPelajaran: [
-    {
-      id: 'mp-pjok-x',
-      nama: 'PJOK Fase E (Kelas X)',
-      fase: 'E',
-      tingkat: 'Kelas X',
-      tahunPelajaran: '2026/2027',
-      guruPengampuId: 'usr-guru-2',
-      guruPengampuNama: 'Ratna Sartika, S.Pd.',
-    },
-    {
-      id: 'mp-pjok-xi',
-      nama: 'PJOK Fase F (Kelas XI)',
-      fase: 'F',
-      tingkat: 'Kelas XI',
-      tahunPelajaran: '2026/2027',
-      guruPengampuId: 'usr-guru-1',
-      guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-    },
-    {
-      id: 'mp-pjok-xii',
-      nama: 'PJOK Fase F (Kelas XII)',
-      fase: 'F',
-      tingkat: 'Kelas XII',
-      tahunPelajaran: '2026/2027',
-      guruPengampuId: 'usr-guru-3',
-      guruPengampuNama: 'Haryono, S.Pd.Jas',
-    },
-  ],
+  kelas: [],
+  mataPelajaran: [],
   materi: [],
   tugas: [],
   pengumpulanTugas: [],
@@ -435,14 +236,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
   nilai: [],
   refleksi: [],
   jawabanRefleksi: [],
-  materiPraktikList: [
-    'Permainan Bola Voli - Passing Bawah & Atas',
-    'Permainan Sepak Bola - Dribbling & Passing',
-    'Bulutangkis - Servis Pendek & Smash',
-    'Senam Lantai - Roll Depan & Belakang',
-    'Kebugaran Jasmani - Tes MFT & Push Up',
-    'Atletik - Lari Cepat & Estafet',
-  ],
+  materiPraktikList: [],
   pengajuanIzin: [],
   isCleanSlate: true,
   cleanSlateTimestamp: new Date().toISOString(),
@@ -464,17 +258,26 @@ class DataStorageService {
   private logListeners: Array<(logs: SpreadsheetSyncLog[]) => void> = [];
 
   constructor() {
-    this.db = this.loadFromLocalStorage();
-    // Reset nilai dan absensi ke nol sesuai permintaan user
-    if (!this.db.isNilaiPresensiReset) {
-      this.db.nilai = [];
-      this.db.presensi = [];
-      this.db.penilaianPraktik = [];
-      this.db.jawabanQuiz = [];
-      this.db.pengumpulanTugas = [];
-      this.db.isNilaiPresensiReset = true;
-      this.saveToLocalStorage(this.db);
+    const CLEAN_KEY = 'lms_hard_clean_v6_done';
+    if (typeof window !== 'undefined') {
+      try {
+        if (localStorage.getItem(CLEAN_KEY) !== 'yes') {
+          // Remove old storage versions
+          const keysToRemove: string[] = [];
+          for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && (k.startsWith('lms_pjok_db_') || k.startsWith('lms_pengajuan_') || k === 'lms_pjok_current_user')) {
+              keysToRemove.push(k);
+            }
+          }
+          keysToRemove.forEach((k) => localStorage.removeItem(k));
+          sessionStorage.clear();
+          localStorage.setItem(CLEAN_KEY, 'yes');
+        }
+      } catch (e) {}
     }
+
+    this.db = this.loadFromLocalStorage();
     this.initFirestoreSync();
     this.loadSyncLogsFromStorage();
   }
@@ -644,15 +447,29 @@ class DataStorageService {
                   incoming.presensi = Array.from(map.values());
                 } else if (docId === 'users') {
                   const serverUsers: User[] = Array.isArray(data.items) ? data.items : [];
-                  // Exclude legacy mock student accounts
                   const filtered = serverUsers.filter((u) => {
-                    if (u.role === 'MURID' && /^usr-murid-\d+$/.test(u.id)) {
+                    if (u.id === 'usr-guru-2' || u.id === 'usr-guru-3' || u.username === 'ratna' || u.username === 'haryono') {
+                      return false;
+                    }
+                    if (u.name === 'Ratna Sartika, S.Pd.' || u.name === 'Haryono, S.Pd.Jas') {
+                      return false;
+                    }
+                    if (u.role === 'MURID' && (u.id?.startsWith('usr-murid-') || !u.id)) {
                       return false;
                     }
                     return true;
                   });
-                  incoming.users = filtered;
-                } else if (['materi', 'tugas', 'quiz', 'jurnal', 'notifikasi', 'pengumuman', 'refleksi'].includes(docId)) {
+                  const hasAdmin = filtered.some((u) => u.id === 'usr-admin-1' || u.username === 'admin');
+                  incoming.users = hasAdmin ? filtered : [...DEFAULT_USERS, ...filtered];
+                } else if (docId === 'kelas') {
+                  const serverKelas: Kelas[] = Array.isArray(data.items) ? data.items : [];
+                  const filtered = serverKelas.filter((k) => !/^cls-(x|xi|xii)-\d+$/.test(k.id));
+                  incoming.kelas = filtered;
+                } else if (docId === 'mataPelajaran') {
+                  const serverMp: MataPelajaran[] = Array.isArray(data.items) ? data.items : [];
+                  const filtered = serverMp.filter((m) => !/^mp-pjok-(x|xi|xii)$/.test(m.id));
+                  incoming.mataPelajaran = filtered;
+                } else if (['materi', 'tugas', 'quiz', 'jurnal', 'notifikasi', 'pengumuman', 'refleksi', 'penilaianPraktik'].includes(docId)) {
                   // Filter out legacy mock demo items so empty slate is respected
                   const legacyMockIds = new Set([
                     'mat-1', 'mat-2', 'mat-3', 'mat-4',
@@ -662,6 +479,7 @@ class DataStorageService {
                     'notif-1', 'notif-2', 'notif-3', 'notif-4',
                     'ann-1', 'ann-2',
                     'ref-1', 'ref-2',
+                    'pen-1', 'pen-2',
                   ]);
                   const filtered = Array.isArray(data.items)
                     ? (data.items as any[]).filter((item) => !legacyMockIds.has(item.id))
@@ -927,7 +745,13 @@ class DataStorageService {
       const savedUser = localStorage.getItem('lms_pjok_current_user');
       if (savedUser) {
         const u = JSON.parse(savedUser);
-        if (u && u.role === 'MURID' && /^usr-murid-\d+$/.test(u.id)) {
+        if (
+          (u && u.role === 'MURID' && (u.id?.startsWith('usr-murid-') || !u.id)) ||
+          u?.id === 'usr-guru-2' ||
+          u?.id === 'usr-guru-3' ||
+          u?.username === 'ratna' ||
+          u?.username === 'haryono'
+        ) {
           this.clearCurrentUser();
           return null;
         }
@@ -966,181 +790,81 @@ class DataStorageService {
 
   private loadFromLocalStorage(): LMSDatabase {
     try {
-      try {
-        localStorage.removeItem('lms_pjok_db_v1');
-        localStorage.removeItem('lms_pjok_db_v2');
-        localStorage.removeItem('lms_pjok_db_v3');
-      } catch {}
-
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        const isCleanSlate = true;
 
         let loadedUsers: User[] = Array.isArray(parsed?.users) && parsed.users.length > 0 ? parsed.users : DEFAULT_USERS;
-        // Filter out legacy dummy students
-        loadedUsers = loadedUsers.filter((u) => !(u.role === 'MURID' && /^usr-murid-\d+$/.test(u.id)));
-
-        // Ensure default staff accounts are present
-        const staffIds = new Set(DEFAULT_USERS.map((d) => d.id));
-        const nonStaffUsers = loadedUsers.filter((u) => !staffIds.has(u.id));
-        loadedUsers = [...DEFAULT_USERS, ...nonStaffUsers];
-
-        let loadedNilai = Array.isArray(parsed?.nilai) ? parsed.nilai : [];
-        let loadedPresensi = Array.isArray(parsed?.presensi) ? parsed.presensi : [];
-
-        // Calculate student count per class based on actual murid records
-        const studentCountByKelas = new Map<string, number>();
-        loadedUsers.forEach((u) => {
-          if (u.role === 'MURID' && u.kelasId) {
-            studentCountByKelas.set(u.kelasId, (studentCountByKelas.get(u.kelasId) || 0) + 1);
-          }
+        // Filter out legacy mock teachers and dummy students
+        loadedUsers = loadedUsers.filter((u) => {
+          if (u.id === 'usr-guru-2' || u.id === 'usr-guru-3' || u.username === 'ratna' || u.username === 'haryono') return false;
+          if (u.name === 'Ratna Sartika, S.Pd.' || u.name === 'Haryono, S.Pd.Jas') return false;
+          if (u.role === 'MURID' && (u.id?.startsWith('usr-murid-') || !u.id)) return false;
+          return true;
         });
 
-        let loadedKelas: Kelas[] = Array.isArray(parsed?.kelas) && parsed.kelas.length > 0 ? parsed.kelas : INITIAL_DATABASE.kelas;
-        loadedKelas = loadedKelas.map((k) => ({
-          ...k,
-          totalMurid: studentCountByKelas.get(k.id) || 0,
-        }));
+        // Ensure default staff account is present
+        const hasAdmin = loadedUsers.some((u) => u.id === 'usr-admin-1' || u.username === 'admin');
+        if (!hasAdmin) {
+          loadedUsers = [...DEFAULT_USERS, ...loadedUsers];
+        }
 
-        const primaryTeacher = 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.';
+        // Exclude the 15 mock classes
+        let loadedKelas: Kelas[] = Array.isArray(parsed?.kelas) ? parsed.kelas : [];
+        loadedKelas = loadedKelas.filter((k) => !/^cls-(x|xi|xii)-\d+$/.test(k.id));
+
+        // Exclude legacy demo subjects
+        let loadedMp: MataPelajaran[] = Array.isArray(parsed?.mataPelajaran) ? parsed.mataPelajaran : [];
+        loadedMp = loadedMp.filter((m) => !/^mp-pjok-(x|xi|xii)$/.test(m.id));
+
+        // Filter mock IDs from educational content
+        const legacyMockIds = new Set([
+          'mat-1', 'mat-2', 'mat-3', 'mat-4',
+          'tug-1', 'tug-2',
+          'qz-1',
+          'jrn-1',
+          'notif-1', 'notif-2', 'notif-3', 'notif-4',
+          'ann-1', 'ann-2',
+          'ref-1', 'ref-2',
+          'pen-1', 'pen-2',
+        ]);
+
+        const loadedMateri = (Array.isArray(parsed?.materi) ? parsed.materi : []).filter((m: any) => !legacyMockIds.has(m.id));
+        const loadedTugas = (Array.isArray(parsed?.tugas) ? parsed.tugas : []).filter((t: any) => !legacyMockIds.has(t.id));
+        const loadedQuiz = (Array.isArray(parsed?.quiz) ? parsed.quiz : []).filter((q: any) => !legacyMockIds.has(q.id));
+        const loadedJurnal = (Array.isArray(parsed?.jurnal) ? parsed.jurnal : []).filter((j: any) => !legacyMockIds.has(j.id));
+        const loadedNotif = (Array.isArray(parsed?.notifikasi) ? parsed.notifikasi : []).filter((n: any) => !legacyMockIds.has(n.id));
+        const loadedPengumuman = (Array.isArray(parsed?.pengumuman) ? parsed.pengumuman : []).filter((p: any) => !legacyMockIds.has(p.id));
+        const loadedRefleksi = (Array.isArray(parsed?.refleksi) ? parsed.refleksi : []).filter((r: any) => !legacyMockIds.has(r.id));
+        const loadedPraktik = (Array.isArray(parsed?.penilaianPraktik) ? parsed.penilaianPraktik : []).filter((p: any) => !legacyMockIds.has(p.id));
 
         return {
           ...INITIAL_DATABASE,
           ...parsed,
-          isCleanSlate,
+          isCleanSlate: true,
+          isNilaiPresensiReset: true,
+          users: loadedUsers,
+          kelas: loadedKelas,
+          mataPelajaran: loadedMp,
+          materi: loadedMateri,
+          tugas: loadedTugas,
+          pengumpulanTugas: Array.isArray(parsed?.pengumpulanTugas) ? parsed.pengumpulanTugas : [],
+          quiz: loadedQuiz,
+          jawabanQuiz: Array.isArray(parsed?.jawabanQuiz) ? parsed.jawabanQuiz : [],
+          penilaianPraktik: loadedPraktik,
+          presensi: Array.isArray(parsed?.presensi) ? parsed.presensi : [],
+          jurnal: loadedJurnal,
+          notifikasi: loadedNotif,
+          pengumuman: loadedPengumuman,
+          nilai: Array.isArray(parsed?.nilai) ? parsed.nilai : [],
+          refleksi: loadedRefleksi,
+          jawabanRefleksi: Array.isArray(parsed?.jawabanRefleksi) ? parsed.jawabanRefleksi : [],
+          materiPraktikList: [],
+          pengajuanIzin: Array.isArray(parsed?.pengajuanIzin) ? parsed.pengajuanIzin : [],
           settings: {
             ...INITIAL_DATABASE.settings,
             ...(parsed?.settings || {}),
-            namaSekolah:
-              !parsed?.settings?.namaSekolah || parsed.settings.namaSekolah.includes('Kintamani')
-                ? 'SMA Negeri 1 Tejakula (SMANSAKA)'
-                : parsed.settings.namaSekolah,
-            namaKepalaSekolah:
-              !parsed?.settings?.namaKepalaSekolah || parsed.settings.namaKepalaSekolah.includes('Sukadana')
-                ? 'Nyoman Sukrada, S.Pd., M.Pd.'
-                : parsed.settings.namaKepalaSekolah,
-            nipKepalaSekolah:
-              !parsed?.settings?.nipKepalaSekolah || parsed.settings.nipKepalaSekolah.includes('19690815')
-                ? '19680105 199103 1 020'
-                : parsed.settings.nipKepalaSekolah,
-            namaGuruPJOKUtama: parsed?.settings?.namaGuruPJOKUtama && parsed?.settings?.namaGuruPJOKUtama !== 'Haryono, S.Pd.Jas, M.Or.'
-              ? parsed.settings.namaGuruPJOKUtama
-              : primaryTeacher,
-            nipGuruPJOKUtama:
-              !parsed?.settings?.nipGuruPJOKUtama || parsed.settings.nipGuruPJOKUtama === '198811152022211013'
-                ? '19881115 202221 1 012'
-                : parsed.settings.nipGuruPJOKUtama,
           },
-          users: loadedUsers,
-          kelas: loadedKelas,
-          mataPelajaran: Array.isArray(parsed?.mataPelajaran) && parsed.mataPelajaran.length >= 3 ? parsed.mataPelajaran : INITIAL_DATABASE.mataPelajaran,
-          materi: Array.isArray(parsed?.materi)
-            ? (isCleanSlate ? parsed.materi : parsed.materi.map((m: any) => ({
-                ...m,
-                guruNama: m.guruNama === 'Haryono, S.Pd.Jas' ? primaryTeacher : (m.guruNama || m.dibuatOleh || primaryTeacher),
-                dibuatOleh: m.dibuatOleh === 'Haryono, S.Pd.Jas' ? primaryTeacher : (m.dibuatOleh || m.guruNama || primaryTeacher),
-                materiInti: m.materiInti || m.kontenTeks || m.konten || '',
-              })))
-            : (isCleanSlate ? [] : INITIAL_DATABASE.materi),
-          tugas: Array.isArray(parsed?.tugas)
-            ? (isCleanSlate ? parsed.tugas : parsed.tugas.map((t: any) => {
-                let deadline = t.deadline;
-                if (t.id === 'tug-2' && (!t.deadline || new Date(t.deadline.replace(' ', 'T')).getTime() < Date.now())) {
-                  deadline = new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' ');
-                }
-                return {
-                  ...t,
-                  deadline,
-                  guruNama: t.guruNama === 'Haryono, S.Pd.Jas' ? primaryTeacher : (t.guruNama || t.dibuatOleh || primaryTeacher),
-                  dibuatOleh: t.dibuatOleh === 'Haryono, S.Pd.Jas' ? primaryTeacher : (t.dibuatOleh || t.guruNama || primaryTeacher),
-                  daftarSoal:
-                    Array.isArray(t.daftarSoal) && t.daftarSoal.length > 0
-                      ? t.daftarSoal
-                      : (t.jenisPengumpulan === 'JAWAB_LANGSUNG' || t.jenisPengumpulan === 'KEDUANYA') && t.instruksi
-                      ? [
-                          {
-                            id: `soal-${t.id}-1`,
-                            nomor: 1,
-                            pertanyaan: t.instruksi,
-                            petunjuk: '',
-                            bobot: 100,
-                          },
-                        ]
-                      : [],
-                };
-              }))
-            : (isCleanSlate ? [] : INITIAL_DATABASE.tugas),
-          pengumpulanTugas: Array.isArray(parsed?.pengumpulanTugas) ? parsed.pengumpulanTugas : (isCleanSlate ? [] : INITIAL_DATABASE.pengumpulanTugas),
-          quiz: Array.isArray(parsed?.quiz)
-            ? (isCleanSlate ? parsed.quiz : parsed.quiz.map((q: any) => {
-                let rawSoal = Array.isArray(q.soal) && q.soal.length > 0 
-                  ? q.soal 
-                  : (Array.isArray(q.soalList) ? q.soalList : []);
-                
-                if (rawSoal.length < 6 || !rawSoal.some((s: any) => s.tipe === 'Mencocokkan Gambar' || s.tipe === 'Tarik Garis')) {
-                  rawSoal = DEFAULT_QUIZ_SOAL;
-                }
-
-                let batasWaktu = q.batasWaktu;
-                if (q.id === 'qz-1' && (!q.batasWaktu || new Date(q.batasWaktu.replace(' ', 'T')).getTime() < Date.now())) {
-                  batasWaktu = new Date(Date.now() + 22 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' ');
-                }
-
-                return {
-                  ...q,
-                  batasWaktu,
-                  soal: rawSoal,
-                  soalList: rawSoal,
-                  guruNama: q.guruNama === 'Haryono, S.Pd.Jas' ? primaryTeacher : (q.guruNama || q.dibuatOleh || primaryTeacher),
-                  dibuatOleh: q.dibuatOleh === 'Haryono, S.Pd.Jas' ? primaryTeacher : (q.dibuatOleh || q.guruNama || primaryTeacher),
-                };
-              }))
-            : (isCleanSlate ? [] : INITIAL_DATABASE.quiz),
-          jawabanQuiz: Array.isArray(parsed?.jawabanQuiz) ? parsed.jawabanQuiz : (isCleanSlate ? [] : INITIAL_DATABASE.jawabanQuiz),
-          penilaianPraktik: Array.isArray(parsed?.penilaianPraktik)
-            ? (isCleanSlate ? parsed.penilaianPraktik : parsed.penilaianPraktik.map((p: any) => ({
-                ...p,
-                materiJudul: p.materiJudul || p.materi || 'Praktik PJOK',
-                nilaiTotal: p.nilaiTotal ?? p.nilaiAkhir ?? 80,
-                catatanEvaluasi: p.catatanEvaluasi || p.catatanGuru || '',
-                guruPenilai: p.guruPenilai === 'Haryono, S.Pd.Jas' ? primaryTeacher : (p.guruPenilai || p.guruNama || primaryTeacher),
-                rubrik: p.rubrik || {
-                  sikapAwal: p.aspekNilai?.sikapAwal ?? 3,
-                  pelaksanaanTeknik: p.aspekNilai?.teknikGerakan ?? 3,
-                  sikapAkhir: p.aspekNilai?.koordinasi ?? 3,
-                  hasilGerakan: p.aspekNilai?.ketepatan ?? 3,
-                  sportivitas: p.aspekNilai?.sportivitas ?? 4,
-                  kerjaSama: p.aspekNilai?.kerjaSama ?? 4,
-                },
-              })))
-            : (isCleanSlate ? [] : INITIAL_DATABASE.penilaianPraktik),
-          presensi: loadedPresensi,
-          jurnal: Array.isArray(parsed?.jurnal) ? parsed.jurnal : (isCleanSlate ? [] : INITIAL_DATABASE.jurnal),
-          notifikasi: Array.isArray(parsed?.notifikasi) ? parsed.notifikasi : (isCleanSlate ? [] : INITIAL_DATABASE.notifikasi),
-          nilai: loadedNilai,
-          refleksi: Array.isArray(parsed?.refleksi) ? parsed.refleksi : INITIAL_DATABASE.refleksi,
-          jawabanRefleksi: Array.isArray(parsed?.jawabanRefleksi) ? parsed.jawabanRefleksi : [],
-          materiPraktikList: Array.isArray(parsed?.materiPraktikList) ? parsed.materiPraktikList : INITIAL_DATABASE.materiPraktikList,
-          pengajuanIzin: (() => {
-            let loadedPengajuan: PengajuanIzin[] = Array.isArray(parsed?.pengajuanIzin) ? parsed.pengajuanIzin : [];
-            try {
-              const backupStr = localStorage.getItem('lms_pengajuan_izin_backup');
-              if (backupStr) {
-                const backupItems: PengajuanIzin[] = JSON.parse(backupStr);
-                if (Array.isArray(backupItems) && backupItems.length > 0) {
-                  const map = new Map<string, PengajuanIzin>();
-                  loadedPengajuan.forEach((p) => map.set(p.id, p));
-                  backupItems.forEach((p) => map.set(p.id, p));
-                  loadedPengajuan = Array.from(map.values());
-                }
-              }
-            } catch (err) {
-              // ignore
-            }
-            return loadedPengajuan;
-          })(),
-          isNilaiPresensiReset: parsed?.isNilaiPresensiReset ?? false,
         };
       }
     } catch (e) {
