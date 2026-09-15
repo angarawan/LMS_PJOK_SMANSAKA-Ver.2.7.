@@ -71,7 +71,7 @@ export interface LMSDatabase {
   isNilaiPresensiReset?: boolean;
 }
 
-const STORAGE_KEY = 'lms_pjok_db_v2';
+const STORAGE_KEY = 'lms_pjok_db_v5';
 
 const DEFAULT_QUIZ_SOAL: Soal[] = [
   {
@@ -232,7 +232,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-2',
       guruPengampuNama: 'Ratna Sartika, S.Pd.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 32,
+      totalMurid: 0,
     },
     {
       id: 'cls-x-2',
@@ -243,7 +243,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-2',
       guruPengampuNama: 'Ratna Sartika, S.Pd.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 32,
+      totalMurid: 0,
     },
     {
       id: 'cls-x-3',
@@ -254,7 +254,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-2',
       guruPengampuNama: 'Ratna Sartika, S.Pd.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 32,
+      totalMurid: 0,
     },
     {
       id: 'cls-x-4',
@@ -265,7 +265,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-2',
       guruPengampuNama: 'Ratna Sartika, S.Pd.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 32,
+      totalMurid: 0,
     },
 
     // --- TINGKAT XI (FASE F) ---
@@ -278,7 +278,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-1',
       guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 31,
+      totalMurid: 0,
     },
     {
       id: 'cls-xi-2',
@@ -289,7 +289,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-1',
       guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 32,
+      totalMurid: 0,
     },
     {
       id: 'cls-xi-3',
@@ -300,7 +300,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-1',
       guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 33,
+      totalMurid: 0,
     },
     {
       id: 'cls-xi-4',
@@ -311,7 +311,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-1',
       guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 34,
+      totalMurid: 0,
     },
     {
       id: 'cls-xi-5',
@@ -322,7 +322,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-1',
       guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 32,
+      totalMurid: 0,
     },
     {
       id: 'cls-xi-6',
@@ -333,7 +333,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-1',
       guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 30,
+      totalMurid: 0,
     },
     {
       id: 'cls-xi-7',
@@ -344,7 +344,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-1',
       guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
       tahunPelajaran: '2026/2027',
-      totalMurid: 31,
+      totalMurid: 0,
     },
 
     // --- TINGKAT XII (FASE F) ---
@@ -357,7 +357,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-3',
       guruPengampuNama: 'Haryono, S.Pd.Jas',
       tahunPelajaran: '2026/2027',
-      totalMurid: 32,
+      totalMurid: 0,
     },
     {
       id: 'cls-xii-2',
@@ -368,7 +368,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-3',
       guruPengampuNama: 'Haryono, S.Pd.Jas',
       tahunPelajaran: '2026/2027',
-      totalMurid: 32,
+      totalMurid: 0,
     },
     {
       id: 'cls-xii-3',
@@ -379,7 +379,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-3',
       guruPengampuNama: 'Haryono, S.Pd.Jas',
       tahunPelajaran: '2026/2027',
-      totalMurid: 33,
+      totalMurid: 0,
     },
     {
       id: 'cls-xii-4',
@@ -390,7 +390,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuId: 'usr-guru-3',
       guruPengampuNama: 'Haryono, S.Pd.Jas',
       tahunPelajaran: '2026/2027',
-      totalMurid: 31,
+      totalMurid: 0,
     },
   ],
   mataPelajaran: [
@@ -422,383 +422,18 @@ export const INITIAL_DATABASE: LMSDatabase = {
       guruPengampuNama: 'Haryono, S.Pd.Jas',
     },
   ],
-  materi: [
-    {
-      id: 'mat-1',
-      judul: 'Teknik Dasar & Taktik Permainan Bola Voli',
-      kategori: 'Bola Voli',
-      kelasId: 'cls-xi-1',
-      kelasNama: 'XI 1',
-      fase: 'F',
-      semester: '1',
-      tujuanPembelajaran:
-        'Peserta didik mampu menganalisis dan mempraktikkan keterampilan variasi pola gerak dasar passing bawah, passing atas, dan servis mengapung dalam permainan bola voli secara efektif dan suportif.',
-      deskripsi:
-        'Materi mencakup pengenalan posisi siap (ready position), perkenaan bola pada lengan bawah, ayunan tangan, dan rotasi posisi lapangan 6 orang.',
-      kontenTeks: `### 1. Passing Bawah (Underhand Pass)
-Passing bawah merupakan teknik dasar yang sangat esensial untuk menerima servis lawan maupun menahan spike (serangan tajam).
-Kunci keberhasilan passing bawah:
-- **Kaki**: Dibuka selebar bahu, salah satu kaki sedikit di depan, lutut ditekuk membentuk sudut 100-110 derajat.
-- **Tangan**: Kedua ibu jari sejajar rapat, telapak tangan saling mengunci tanpa menekuk siku saat memukul bola.
-- **Perkenaan**: Bola menyentuh bagian proksimal pergelangan tangan (sekitar 5-10 cm di atas pergelangan).
-- **Gerakan Lanjutan**: Dorongan berasal dari meluruskan tungkai kaki, bukan semata-mata mengayunkan lengan.
-
-### 2. Passing Atas (Overhand Set)
-Digunakan untuk mengumpan bola ke spiker dengan presisi tinggi.
-- Bentuk jari-jari tangan seperti mangkuk terbuka tepat di depan dahi.
-- Sentuhan bola hanya dengan ruas-ruas jari, hindari menyentuh telapak tangan.`,
-      materiInti: `### 1. Passing Bawah (Underhand Pass)
-Passing bawah merupakan teknik dasar yang sangat esensial untuk menerima servis lawan maupun menahan spike (serangan tajam).
-Kunci keberhasilan passing bawah:
-- **Kaki**: Dibuka selebar bahu, salah satu kaki sedikit di depan, lutut ditekuk membentuk sudut 100-110 derajat.
-- **Tangan**: Kedua ibu jari sejajar rapat, telapak tangan saling mengunci tanpa menekuk siku saat memukul bola.
-- **Perkenaan**: Bola menyentuh bagian proksimal pergelangan tangan (sekitar 5-10 cm di atas pergelangan).
-- **Gerakan Lanjutan**: Dorongan berasal dari meluruskan tungkai kaki, bukan semata-mata mengayunkan lengan.
-
-### 2. Passing Atas (Overhand Set)
-Digunakan untuk mengumpan bola ke spiker dengan presisi tinggi.
-- Bentuk jari-jari tangan seperti mangkuk terbuka tepat di depan dahi.
-- Sentuhan bola hanya dengan ruas-ruas jari, hindari menyentuh telapak tangan.`,
-      videoUrl: 'https://www.youtube.com/watch?v=0e68H4Q26pA',
-      gambarUrl: 'https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?w=800&auto=format&fit=crop&q=80',
-      pdfUrl: 'https://pjok.kemdikbud.go.id/modul-bola-voli-fase-f.pdf',
-      linkSumber: 'https://kemdikbud.go.id/kurikulum-merdeka/pjok',
-      aktivitasMurid:
-        'Praktikkan passing bawah berpasangan sebanyak 20 kali tanpa bola jatuh bersama rekan kelompokmu di lapangan.',
-      dibuatOleh: 'Haryono, S.Pd.Jas',
-      tanggalDibuat: '2026-08-20',
-    },
-    {
-      id: 'mat-2',
-      judul: 'Permainan Bola Basket: Pola Serangan & Fastbreak',
-      kategori: 'Bola Basket',
-      kelasId: 'cls-xi-1',
-      kelasNama: 'XI 1',
-      fase: 'F',
-      semester: '1',
-      tujuanPembelajaran:
-        'Menganalisis konsep gerak dribble zigzag, crossover, chest pass dinamis, dan penyelesaian lay-up shoot dari sisi kanan maupun kiri ring.',
-      deskripsi:
-        'Materi ini menekankan kecepatan pengambilan keputusan saat transisi menyerang dan akurasi lay-up di bawah tekanan lawan.',
-      kontenTeks: `### Fundamental Bola Basket
-1. **Dribble Rendah**: Melindungi bola dari jangkauan lawan dengan membungkukkan badan.
-2. **Chest Pass & Bounce Pass**: Umpan cepat setinggi dada dan umpan pantul untuk membelah pertahanan zone defense.
-3. **Lay-Up Shoot**: Langkah berirama dua langkah (kanan-kiri-lompat) dengan memantulkan bola di sudut kotak papan pantul.`,
-      materiInti: `### Fundamental Bola Basket
-1. **Dribble Rendah**: Melindungi bola dari jangkauan lawan dengan membungkukkan badan.
-2. **Chest Pass & Bounce Pass**: Umpan cepat setinggi dada dan umpan pantul untuk membelah pertahanan zone defense.
-3. **Lay-Up Shoot**: Langkah berirama dua langkah (kanan-kiri-lompat) dengan memantulkan bola di sudut kotak papan pantul.`,
-      videoUrl: 'https://www.youtube.com/watch?v=3g83hM-nBf4',
-      gambarUrl: 'https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop&q=80',
-      aktivitasMurid:
-        'Buat video rekaman gerak lambat lay-up shoot dengan langkah yang benar dan unggah ke LMS.',
-      dibuatOleh: 'Haryono, S.Pd.Jas',
-      tanggalDibuat: '2026-08-25',
-    },
-    {
-      id: 'mat-3',
-      judul: 'Bulutangkis: Footwork Cepat & Teknik Smash Menukik',
-      kategori: 'Bulutangkis',
-      kelasId: 'cls-xi-1',
-      kelasNama: 'XI 1',
-      fase: 'F',
-      semester: '1',
-      tujuanPembelajaran:
-        'Peserta didik mampu memperagakan kelincahan footwork 6 titik lapangan serta teknik pukulan forehand overhead smash dengan sudut menukik tajam.',
-      deskripsi:
-        'Penguasaan koordinasi langkah kaki (footwork) dan timing pukulan shuttlecock di titik tertinggi jangkauan raket.',
-      kontenTeks: `### Footwork Bulutangkis
-Langkah kaki adalah 70% keberhasilan bermain bulutangkis. Posisi tubuh selalu kembali ke titik tengah (home base) setelah melakukan pukulan.
-### Pukulan Smash
-Gunakan lecutan pergelangan tangan (pronation) saat raket menyentuh kepala shuttlecock di titik optimal.`,
-      materiInti: `### Footwork Bulutangkis
-Langkah kaki adalah 70% keberhasilan bermain bulutangkis. Posisi tubuh selalu kembali ke titik tengah (home base) setelah melakukan pukulan.
-### Pukulan Smash
-Gunakan lecutan pergelangan tangan (pronation) saat raket menyentuh kepala shuttlecock di titik optimal.`,
-      gambarUrl: 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&auto=format&fit=crop&q=80',
-      aktivitasMurid:
-        'Latihan shuttle-run 6 titik sudut lapangan selama 3 set x 30 detik untuk melatih daya ledak.',
-      dibuatOleh: 'Haryono, S.Pd.Jas',
-      tanggalDibuat: '2026-09-01',
-    },
-    {
-      id: 'mat-4',
-      judul: 'Kebugaran Jasmani & Pengukuran Denyut Nadi Maksimal',
-      kategori: 'Kebugaran Jasmani',
-      kelasId: 'cls-xi-1',
-      kelasNama: 'XI 1',
-      fase: 'F',
-      semester: '1',
-      tujuanPembelajaran:
-        'Menganalisis derajat kebugaran jasmani melalui tes daya tahan aerobik (VO2Max) dan memahami rumus target heart rate.',
-      deskripsi:
-        'Memahami konsep 220 - Usia untuk menentukan intensitas latihan aerobik pada zona pembakaran lemak dan penguatan kardiovaskular.',
-      kontenTeks: `### Komponen Kebugaran Jasmani
-1. Daya Tahan Kardiorespirasi (Cardiovascular Endurance)
-2. Kekuatan Otot (Muscular Strength)
-3. Kelenturan (Flexibility)
-4. Komposisi Tubuh (Body Composition)
-
-**Rumus Denyut Nadi Maksimal (DNM):**
-DNM = 220 - Usia
-Zona Latihan Efektif: 65% - 85% dari DNM.`,
-      materiInti: `### Komponen Kebugaran Jasmani
-1. Daya Tahan Kardiorespirasi (Cardiovascular Endurance)
-2. Kekuatan Otot (Muscular Strength)
-3. Kelenturan (Flexibility)
-4. Komposisi Tubuh (Body Composition)
-
-**Rumus Denyut Nadi Maksimal (DNM):**
-DNM = 220 - Usia
-Zona Latihan Efektif: 65% - 85% dari DNM.`,
-      gambarUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80',
-      aktivitasMurid: 'Hitung denyut nadi istirahat pagi hari dan denyut nadi setelah berolahraga 15 menit.',
-      dibuatOleh: 'Ratna Sartika, S.Pd.',
-      tanggalDibuat: '2026-09-02',
-    },
-  ],
-  tugas: [
-    {
-      id: 'tug-1',
-      judul: 'Tugas Analisis Video Gerakan Passing Bawah Bola Voli',
-      materiId: 'mat-1',
-      materiJudul: 'Teknik Dasar & Taktik Permainan Bola Voli',
-      kelasId: 'cls-xi-1',
-      kelasNama: 'XI 1',
-      instruksi:
-        'Rekam video gerakan passing bawah mandiri atau berpasangan durasi 1-2 menit. Jelaskan kesalahan umum yang sering terjadi pada awal belajar.',
-      daftarSoal: [
-        {
-          id: 'soal-tug1-1',
-          nomor: 1,
-          pertanyaan: 'Sebutkan dan jelaskan 3 kesalahan umum posisi tangan dan lengan saat melakukan passing bawah!',
-          petunjuk: 'Jelaskan posisi siku dan perkenaan bola pada lengan bawah.',
-          bobot: 50,
-        },
-        {
-          id: 'soal-tug1-2',
-          nomor: 2,
-          pertanyaan: 'Bagaimana posisi lutut dan berat badan yang tepat untuk menjaga stabilitas saat menerima servis keras lawan?',
-          petunjuk: 'Uraikan sudut tekukan lutut dan pusat gravitasi tubuh.',
-          bobot: 50,
-        },
-      ],
-      tanggalMulai: '2026-09-01',
-      deadline: '2026-09-30 23:59',
-      jenisPengumpulan: 'KEDUANYA',
-      status: 'Publish',
-      statusPublikasi: 'Publish',
-      dibuatOleh: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-    },
-    {
-      id: 'tug-2',
-      judul: 'Analisis Teori dan Prinsip Kebugaran Jasmani Mandiri',
-      materiId: 'mat-4',
-      materiJudul: 'Kebugaran Jasmani & Pengukuran Denyut Nadi Maksimal',
-      kelasId: 'cls-xi-1',
-      kelasNama: 'XI 1',
-      instruksi:
-        'Jawablah butir-butir pertanyaan analisis kebugaran jasmani di bawah ini secara langsung dan mandiri tanpa copy-paste.',
-      daftarSoal: [
-        {
-          id: 'soal-tug2-1',
-          nomor: 1,
-          pertanyaan: 'Jelaskan rumus menghitung Denyut Nadi Maksimal (DNM) dan hitunglah zona latihan efektif (Target Heart Rate) untuk usia Anda saat ini!',
-          petunjuk: 'Gunakan rumus standar 220 - Usia dan rentang 65% - 85%.',
-          bobot: 50,
-        },
-        {
-          id: 'soal-tug2-2',
-          nomor: 2,
-          pertanyaan: 'Mengapa pemanasan dinamis dan pendinginan (cooling down) sangat krusial dalam pencegahan cedera otot saat berolahraga?',
-          petunjuk: 'Jelaskan dampaknya terhadap sirkulasi asam laktat dan elastisitas otot.',
-          bobot: 50,
-        },
-      ],
-      tanggalMulai: '2026-09-03',
-      deadline: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' '),
-      jenisPengumpulan: 'JAWAB_LANGSUNG',
-      status: 'Publish',
-      statusPublikasi: 'Publish',
-      dibuatOleh: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-      guruNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
-    },
-  ],
+  materi: [],
+  tugas: [],
   pengumpulanTugas: [],
-  quiz: [
-    {
-      id: 'qz-1',
-      judul: 'Quiz Pengetahuan: Aturan & Variasi Gerak Bola Voli (AKM/HOTS)',
-      materiId: 'mat-1',
-      materiJudul: 'Teknik Dasar & Taktik Permainan Bola Voli',
-      kelasId: 'cls-xi-1',
-      kelasNama: 'XI 1',
-      durasiMenit: 20,
-      batasWaktu: new Date(Date.now() + 22 * 60 * 60 * 1000).toISOString().slice(0, 16).replace('T', ' '),
-      acakSoal: true,
-      acakJawaban: true,
-      dibuatOleh: 'Haryono, S.Pd.Jas',
-      soal: DEFAULT_QUIZ_SOAL,
-      soalList: DEFAULT_QUIZ_SOAL,
-    },
-  ],
+  quiz: [],
   jawabanQuiz: [],
   penilaianPraktik: [],
   presensi: [],
-  jurnal: [
-    {
-      id: 'jrn-1',
-      tanggal: '2026-09-05',
-      kelasId: 'cls-xi-1',
-      kelasNama: 'XI 1',
-      materi: 'Variasi Passing Bawah dan Formasi Bertahan Bola Voli',
-      tujuanPembelajaran:
-        'Peserta didik mampu melakukan gerak passing bawah berpasangan dengan akurasi 80% ke area setter.',
-      kegiatanPembelajaran:
-        'Pemanasan dinamis jogging keliling lapangan 3 putaran, stretching statis, drill berpasangan 15 menit, game simulasi 3v3 setengah lapangan.',
-      metode: 'Demonstrasi Guru, Drill Praktik, dan Pembelajaran Berdiferensiasi',
-      media: '10 Bola Voli Mikasa, Peluit Molten, Lapangan Utama SMAN 1, Kerucut Cone',
-      kehadiranRingkas: 'Hadir: 32, Izin: 1, Sakit: 1, Alpa: 0',
-      catatanRefleksi:
-        'Mayoritas siswa sudah rileks saat kontak dengan bola. Perlu perhatian khusus bagi 4 siswa yang masih sering mengayun tangan terlalu tinggi di atas pundak.',
-      materiJudul: 'Variasi Passing Bawah dan Formasi Bertahan Bola Voli',
-      kegiatan: 'Pemanasan dinamis jogging keliling lapangan 3 putaran, stretching statis, drill berpasangan 15 menit, game simulasi 3v3 setengah lapangan.',
-      jumlahHadir: 32,
-      jumlahTidakHadir: 2,
-      hambatan: '4 siswa masih sering mengayun tangan melebihi batas bahu sehingga bola memantul ke belakang.',
-      tindakLanjut: 'Diberikan latihan isolasi perkenaan bola statis bertahap bersama rekan sebaya.',
-      guruId: 'usr-guru-1',
-      guruNama: 'Haryono, S.Pd.Jas, M.Or.',
-    },
-  ],
-  notifikasi: [
-    {
-      id: 'notif-1',
-      judul: 'Tugas Baru Diberikan',
-      pesan: 'Pak Haryono menambahkan tugas: Analisis Video Gerakan Passing Bawah Bola Voli.',
-      waktu: '2 jam yang lalu',
-      tipe: 'tugas',
-      dibaca: false,
-    },
-    {
-      id: 'notif-2',
-      judul: 'Nilai Praktik Diberikan',
-      pesan: 'Nilai praktik PJOK Passing Bawah Anda telah dinilai (Skor: 96 / Predikat A).',
-      waktu: '1 hari yang lalu',
-      tipe: 'nilai',
-      dibaca: false,
-    },
-    {
-      id: 'notif-3',
-      judul: 'Quiz Aktif Tersedia',
-      pesan: 'Quiz Pengetahuan Aturan & Variasi Gerak Bola Voli dibuka hingga 18 September 2026.',
-      waktu: '2 hari yang lalu',
-      tipe: 'quiz',
-      dibaca: true,
-    },
-    {
-      id: 'notif-4',
-      judul: 'Pengumuman Penting',
-      pesan: 'Jadwal Tes Kebugaran Jasmani Indonesia (TKJI) akan dilaksanakan Jumat depan.',
-      waktu: '3 hari yang lalu',
-      tipe: 'pengumuman',
-      dibaca: true,
-    },
-  ],
-  pengumuman: [
-    {
-      id: 'ann-1',
-      judul: 'Persiapan Praktik Lapangan & Seragam Olahraga',
-      isi: 'Diberitahukan kepada seluruh siswa Kelas XI bahwa untuk pertemuan minggu ini kita akan melaksanakan materi praktik di lapangan utama. Mohon mengenakan seragam olahraga resmi, sepatu kets yang sesuai, dan membawa botol minum pribadi.',
-      targetRole: 'MURID',
-      targetKelasId: 'ALL',
-      targetKelasNama: 'Semua Kelas',
-      prioritas: 'Penting',
-      guruId: 'usr-guru-1',
-      guruNama: 'Haryono, S.Pd.Jas, M.Or.',
-      tanggalDibuat: '2026-09-10T08:00:00.000Z',
-      dibacaOleh: ['usr-murid-1'],
-    },
-    {
-      id: 'ann-2',
-      judul: 'Penilaian Sumatif Praktik Bola Voli',
-      isi: 'Pengambilan nilai sumatif teknik passing bawah dan passing atas akan dilaksanakan pekan depan. Silakan pelajari kembali video peragaan dan rubrik capaian pembelajaran pada menu Materi.',
-      targetRole: 'MURID',
-      targetKelasId: 'cls-xi-1',
-      targetKelasNama: 'Kelas XI 1',
-      prioritas: 'Biasa',
-      guruId: 'usr-guru-1',
-      guruNama: 'Haryono, S.Pd.Jas, M.Or.',
-      tanggalDibuat: '2026-09-12T09:30:00.000Z',
-      dibacaOleh: [],
-    },
-  ],
+  jurnal: [],
+  notifikasi: [],
+  pengumuman: [],
   nilai: [],
-  refleksi: [
-    {
-      id: 'ref-1',
-      judul: 'Refleksi Pembelajaran: Teknik Passing Bola Voli',
-      deskripsi: 'Evaluasi pemahaman, rasa percaya diri, dan tantangan yang dihadapi murid setelah praktik passing bola voli.',
-      materiId: 'mat-1',
-      materiJudul: 'Permainan Bola Voli - Passing Bawah & Atas',
-      kelasIds: ['cls-xi-1', 'cls-xi-2', 'cls-xi-3', 'cls-xi-4', 'cls-xi-5', 'cls-xi-6', 'cls-xi-7'],
-      guruId: 'usr-guru-1',
-      guruNama: 'Haryono, S.Pd.Jas, M.Or.',
-      tanggalDibuat: '2026-09-08',
-      status: 'Aktif',
-      soalList: [
-        {
-          id: 'sq-1',
-          pertanyaan: 'Seberapa yakin dan nyaman kamu dalam mengarahkan bola saat melakukan passing bawah hari ini?',
-          tipe: 'skala',
-          kategori: 'perasaan',
-        },
-        {
-          id: 'sq-2',
-          pertanyaan: 'Bagian gerakan mana yang menurutmu paling menantang (posisi kaki, ayunan lengan, atau perkenaan bola)?',
-          tipe: 'teks',
-          kategori: 'kesulitan',
-        },
-        {
-          id: 'sq-3',
-          pertanyaan: 'Bagaimana komunikasi dan kerjasama dengan teman satu tim saat bermain reli operan bola?',
-          tipe: 'teks',
-          kategori: 'pemahaman',
-        },
-        {
-          id: 'sq-4',
-          pertanyaan: 'Apa target atau latihan yang ingin kamu coba mandiri untuk meningkatkan kualitas operanmu?',
-          tipe: 'teks',
-          kategori: 'tindak_lanjut',
-        },
-      ],
-    },
-    {
-      id: 'ref-2',
-      judul: 'Refleksi Kebugaran Jasmani & Kerjasama Tim',
-      deskripsi: 'Refleksi kesadaran pola hidup bugar dan sportivitas dalam kegiatan olahraga kelompok.',
-      kelasIds: ['cls-xi-1', 'cls-xi-2', 'cls-xi-3', 'cls-xi-4', 'cls-xi-5', 'cls-xi-6', 'cls-xi-7'],
-      guruId: 'usr-guru-1',
-      guruNama: 'Haryono, S.Pd.Jas, M.Or.',
-      tanggalDibuat: '2026-09-09',
-      status: 'Aktif',
-      soalList: [
-        {
-          id: 'sq-5',
-          pertanyaan: 'Seberapa bugar dan bersemangat energimu setelah menyelesaikan sesi pemanasan dan latihan kebugaran?',
-          tipe: 'skala',
-          kategori: 'perasaan',
-        },
-        {
-          id: 'sq-6',
-          pertanyaan: 'Tuliskan satu komitmen kebiasaan gerak aktif/sehat yang akan kamu jalani setiap hari di rumah!',
-          tipe: 'teks',
-          kategori: 'tindak_lanjut',
-        },
-      ],
-    },
-  ],
+  refleksi: [],
   jawabanRefleksi: [],
   materiPraktikList: [
     'Permainan Bola Voli - Passing Bawah & Atas',
@@ -809,6 +444,9 @@ Zona Latihan Efektif: 65% - 85% dari DNM.`,
     'Atletik - Lari Cepat & Estafet',
   ],
   pengajuanIzin: [],
+  isCleanSlate: true,
+  cleanSlateTimestamp: new Date().toISOString(),
+  isNilaiPresensiReset: true,
 };
 
 export type FirestoreSyncStatus = 'connecting' | 'synced' | 'syncing' | 'offline' | 'error';
@@ -1004,6 +642,31 @@ class DataStorageService {
                     if (!map.has(it.id)) map.set(it.id, it);
                   });
                   incoming.presensi = Array.from(map.values());
+                } else if (docId === 'users') {
+                  const serverUsers: User[] = Array.isArray(data.items) ? data.items : [];
+                  // Exclude legacy mock student accounts
+                  const filtered = serverUsers.filter((u) => {
+                    if (u.role === 'MURID' && /^usr-murid-\d+$/.test(u.id)) {
+                      return false;
+                    }
+                    return true;
+                  });
+                  incoming.users = filtered;
+                } else if (['materi', 'tugas', 'quiz', 'jurnal', 'notifikasi', 'pengumuman', 'refleksi'].includes(docId)) {
+                  // Filter out legacy mock demo items so empty slate is respected
+                  const legacyMockIds = new Set([
+                    'mat-1', 'mat-2', 'mat-3', 'mat-4',
+                    'tug-1', 'tug-2',
+                    'qz-1',
+                    'jrn-1',
+                    'notif-1', 'notif-2', 'notif-3', 'notif-4',
+                    'ann-1', 'ann-2',
+                    'ref-1', 'ref-2',
+                  ]);
+                  const filtered = Array.isArray(data.items)
+                    ? (data.items as any[]).filter((item) => !legacyMockIds.has(item.id))
+                    : [];
+                  (incoming as any)[docId] = filtered;
                 } else {
                   (incoming as any)[docId] = data.items;
                 }
@@ -1082,6 +745,7 @@ class DataStorageService {
         'presensi',
         'jurnal',
         'notifikasi',
+        'pengumuman',
         'nilai',
         'refleksi',
         'jawabanRefleksi',
@@ -1091,7 +755,7 @@ class DataStorageService {
 
       for (const sec of sections) {
         const docRef = doc(firestore, 'lms_records', sec);
-        const rawVal = this.db[sec];
+        const rawVal = this.db[sec] || [];
         const cleanVal = JSON.parse(JSON.stringify(rawVal));
 
         const payload =
@@ -1099,7 +763,7 @@ class DataStorageService {
             ? { data: cleanVal, section: sec, updatedAt: new Date().toISOString() }
             : { items: cleanVal, section: sec, updatedAt: new Date().toISOString() };
 
-        await setDoc(docRef, payload, { merge: true });
+        await setDoc(docRef, payload);
       }
 
       this.lastSyncTime = new Date();
@@ -1262,7 +926,12 @@ class DataStorageService {
     try {
       const savedUser = localStorage.getItem('lms_pjok_current_user');
       if (savedUser) {
-        return JSON.parse(savedUser);
+        const u = JSON.parse(savedUser);
+        if (u && u.role === 'MURID' && /^usr-murid-\d+$/.test(u.id)) {
+          this.clearCurrentUser();
+          return null;
+        }
+        return u;
       }
     } catch (e) {
       // fallback
@@ -1297,51 +966,42 @@ class DataStorageService {
 
   private loadFromLocalStorage(): LMSDatabase {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('lms_pjok_db_v1');
+      try {
+        localStorage.removeItem('lms_pjok_db_v1');
+        localStorage.removeItem('lms_pjok_db_v2');
+        localStorage.removeItem('lms_pjok_db_v3');
+      } catch {}
+
+      const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        const isCleanSlate = parsed?.isCleanSlate === true;
+        const isCleanSlate = true;
 
-        let loadedUsers: User[] = Array.isArray(parsed?.users) && parsed.users.length > 0 ? parsed.users : (isCleanSlate ? [] : INITIAL_DATABASE.users);
-        if (!isCleanSlate) {
-          // Auto-upgrade if previous database had old mock users or did not have 31 accurate students
-          const hasAccurateData = loadedUsers.some(
-            (u: any) => u.name === 'Gede Aditya Peratama' || u.name === 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.'
-          );
-          if (!hasAccurateData || loadedUsers.length < 30) {
-            loadedUsers = INITIAL_DATABASE.users;
-          } else {
-            // Ensure teachers have their classes assigned properly
-            loadedUsers = loadedUsers.map((u) => {
-              if (u.role === 'GURU') {
-                const defGuru = DEFAULT_USERS.find((d) => d.id === u.id || d.username === u.username);
-                if (defGuru) {
-                  return {
-                    ...u,
-                    mataPelajaran: u.mataPelajaran || defGuru.mataPelajaran,
-                    kelasDiampu: u.kelasDiampu && u.kelasDiampu.length > 0 ? u.kelasDiampu : defGuru.kelasDiampu,
-                    kelasDiampuIds: u.kelasDiampuIds && u.kelasDiampuIds.length > 0 ? u.kelasDiampuIds : defGuru.kelasDiampuIds,
-                  };
-                }
-              }
-              return u;
-            });
-          }
-        }
+        let loadedUsers: User[] = Array.isArray(parsed?.users) && parsed.users.length > 0 ? parsed.users : DEFAULT_USERS;
+        // Filter out legacy dummy students
+        loadedUsers = loadedUsers.filter((u) => !(u.role === 'MURID' && /^usr-murid-\d+$/.test(u.id)));
+
+        // Ensure default staff accounts are present
+        const staffIds = new Set(DEFAULT_USERS.map((d) => d.id));
+        const nonStaffUsers = loadedUsers.filter((u) => !staffIds.has(u.id));
+        loadedUsers = [...DEFAULT_USERS, ...nonStaffUsers];
 
         let loadedNilai = Array.isArray(parsed?.nilai) ? parsed.nilai : [];
         let loadedPresensi = Array.isArray(parsed?.presensi) ? parsed.presensi : [];
 
-        // Ensure all grades from X to XII exist in kelas
+        // Calculate student count per class based on actual murid records
+        const studentCountByKelas = new Map<string, number>();
+        loadedUsers.forEach((u) => {
+          if (u.role === 'MURID' && u.kelasId) {
+            studentCountByKelas.set(u.kelasId, (studentCountByKelas.get(u.kelasId) || 0) + 1);
+          }
+        });
+
         let loadedKelas: Kelas[] = Array.isArray(parsed?.kelas) && parsed.kelas.length > 0 ? parsed.kelas : INITIAL_DATABASE.kelas;
-        const hasKelasX = loadedKelas.some((k) => k.tingkat === 'X');
-        const hasKelasXII = loadedKelas.some((k) => k.tingkat === 'XII');
-        if (!hasKelasX || !hasKelasXII) {
-          const missing = INITIAL_DATABASE.kelas.filter(
-            (ik) => !loadedKelas.some((lk) => lk.id === ik.id || lk.nama === ik.nama)
-          );
-          loadedKelas = [...loadedKelas, ...missing];
-        }
+        loadedKelas = loadedKelas.map((k) => ({
+          ...k,
+          totalMurid: studentCountByKelas.get(k.id) || 0,
+        }));
 
         const primaryTeacher = 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.';
 
@@ -1622,11 +1282,17 @@ class DataStorageService {
           dibaca: false,
         },
       ],
+      pengumuman: [],
       nilai: [],
+      refleksi: [],
+      jawabanRefleksi: [],
+      materiPraktikList: this.db.materiPraktikList || INITIAL_DATABASE.materiPraktikList,
       pengajuanIzin: [],
+      isNilaiPresensiReset: true,
     };
 
     this.db = cleanDb;
+    this.saveToLocalStorage(cleanDb);
     this.notify();
     this.seedAllToFirestore();
   }
