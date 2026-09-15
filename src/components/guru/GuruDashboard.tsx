@@ -20,6 +20,9 @@ import {
   Calendar,
   AlertCircle,
   Table as TableIcon,
+  FileText,
+  FileSpreadsheet,
+  ArrowRight,
 } from 'lucide-react';
 import { LMSDatabase } from '../../services/dataStorage';
 import { User, getTeacherAssignedClasses } from '../../types';
@@ -90,6 +93,10 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ db, currentUser, o
     );
   });
   const hadirToday = presensiToday.filter((p) => p.status === 'H').length;
+
+  const pendingIzinList = useMemo(() => {
+    return (db.pengajuanIzin || []).filter((p) => p.status === 'Menunggu');
+  }, [db.pengajuanIzin]);
 
   // Rekapitulasi Kehadiran & Kedisiplinan Per Rombel/Kelas yang Aktif
   const classAttendanceSummaries = useMemo(() => {
@@ -292,9 +299,54 @@ export const GuruDashboard: React.FC<GuruDashboardProps> = ({ db, currentUser, o
               <CalendarCheck className="w-4 h-4" />
               Isi Presensi Lapangan
             </button>
+            <button
+              onClick={() => onNavigate('surat-izin')}
+              className="px-4 py-2 bg-amber-500/80 hover:bg-amber-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <FileText className="w-4 h-4" />
+              Surat Izin ({pendingIzinList.length})
+            </button>
+            <button
+              onClick={() => onNavigate('rekap-jurnal')}
+              className="px-4 py-2 bg-teal-500/80 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              Rekapan Jurnal
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Alert Pengajuan Surat Izin Menunggu Konfirmasi Guru */}
+      {pendingIzinList.length > 0 && (
+        <div className="bg-gradient-to-r from-amber-500/15 via-amber-500/10 to-orange-500/15 border-2 border-amber-400/60 rounded-2xl sm:rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-black text-slate-900">
+                  {pendingIzinList.length} Pengajuan Surat Izin / Sakit Menunggu Verifikasi
+                </h4>
+                <span className="px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-black animate-pulse">
+                  Perlu Ditinjau
+                </span>
+              </div>
+              <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                Terdapat permohonan surat izin dan sakit siswa yang membutuhkan persetujuan Anda untuk otomatis dicatat ke buku absensi kelas.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavigate('surat-izin')}
+            className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl shadow-md transition flex items-center gap-2 shrink-0 cursor-pointer active:scale-95"
+          >
+            <span>Buka & Verifikasi Surat</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Class Scope Selector for Multi-Teacher */}
       <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">

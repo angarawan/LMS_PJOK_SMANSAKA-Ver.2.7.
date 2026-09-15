@@ -181,11 +181,16 @@ export default function App() {
         case 'refleksi':
           return <GuruRefleksi db={db} currentUser={currentUser} />;
         case 'jurnal':
-          return <JurnalMengajarView db={db} currentUser={currentUser} />;
+          return <JurnalMengajarView db={db} currentUser={currentUser} initialTab="harian" />;
+        case 'rekap-jurnal':
+          return <JurnalMengajarView db={db} currentUser={currentUser} initialTab="rekap" />;
         case 'presensi':
           return <AttendanceManager db={db} role="ADMIN" currentUser={currentUser} initialTab="harian" />;
         case 'rekap-absensi':
           return <AttendanceManager db={db} role="ADMIN" currentUser={currentUser} initialTab="rekap" />;
+        case 'surat-izin':
+        case 'pengajuan-izin':
+          return <AttendanceManager db={db} role="ADMIN" currentUser={currentUser} initialTab="surat-izin" />;
         case 'nilai':
           return (
             <GradesReport
@@ -244,6 +249,9 @@ export default function App() {
           return <AttendanceManager db={db} role="GURU" currentUser={currentUser} initialTab="harian" />;
         case 'rekap-absensi':
           return <AttendanceManager db={db} role="GURU" currentUser={currentUser} initialTab="rekap" />;
+        case 'surat-izin':
+        case 'pengajuan-izin':
+          return <AttendanceManager db={db} role="GURU" currentUser={currentUser} initialTab="surat-izin" />;
         case 'nilai':
           return (
             <GradesReport
@@ -252,7 +260,9 @@ export default function App() {
             />
           );
         case 'jurnal':
-          return <JurnalMengajarView db={db} currentUser={currentUser} />;
+          return <JurnalMengajarView db={db} currentUser={currentUser} initialTab="harian" />;
+        case 'rekap-jurnal':
+          return <JurnalMengajarView db={db} currentUser={currentUser} initialTab="rekap" />;
         case 'settings':
           return (
             <SchoolSettings

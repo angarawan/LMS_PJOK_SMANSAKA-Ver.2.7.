@@ -47,6 +47,7 @@ interface MenuSection {
     id: string;
     label: string;
     icon: React.ReactNode;
+    badge?: number | string;
   }[];
 }
 
@@ -109,81 +110,107 @@ export const Sidebar: React.FC<SidebarProps> = ({
     reader.readAsDataURL(file);
   };
 
-  const getAdminSections = (): MenuSection[] => [
-    {
-      title: 'Utama',
-      items: [
-        { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'Data Pengguna & Pengajar',
-      items: [
-        { id: 'data-murid', label: 'Data Murid', icon: <GraduationCap className="w-5 h-5" /> },
-        { id: 'data-guru', label: 'Data Guru', icon: <UserCheck className="w-5 h-5" /> },
-        { id: 'users', label: 'Kelola Pengguna', icon: <Users className="w-5 h-5" /> },
-        { id: 'kelas', label: 'Kelas & Rombel', icon: <School className="w-5 h-5" /> },
-        { id: 'mapel', label: 'Mata Pelajaran', icon: <BookOpen className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'Pembelajaran & Asesmen',
-      items: [
-        { id: 'materi', label: 'Konten Materi', icon: <BookMarked className="w-5 h-5" /> },
-        { id: 'tugas', label: 'Tugas PJOK', icon: <ClipboardList className="w-5 h-5" /> },
-        { id: 'quiz', label: 'Quiz & Asesmen', icon: <CheckCircle className="w-5 h-5" /> },
-        { id: 'praktik', label: 'Penilaian Praktik', icon: <Activity className="w-5 h-5" /> },
-        { id: 'refleksi', label: 'Refleksi Pembelajaran', icon: <Sparkles className="w-5 h-5" /> },
-        { id: 'jurnal', label: 'Jurnal Mengajar', icon: <FileText className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'Laporan & Pengaturan',
-      items: [
-        { id: 'presensi', label: 'Presensi Siswa', icon: <CalendarCheck className="w-5 h-5" /> },
-        { id: 'rekap-absensi', label: 'Rekapan Absensi', icon: <FileSpreadsheet className="w-5 h-5 text-emerald-400" /> },
-        { id: 'nilai', label: 'Penilaian & Rapor', icon: <Award className="w-5 h-5" /> },
-        { id: 'profil-saya', label: 'Profil Saya', icon: <User className="w-5 h-5" /> },
-        { id: 'settings', label: 'Pengaturan Sistem', icon: <Settings className="w-5 h-5" /> },
-      ],
-    },
-  ];
+  const getAdminSections = (): MenuSection[] => {
+    const pendingIzinCount = (dataStorage.getDatabase().pengajuanIzin || []).filter(
+      (i) => i.status === 'Menunggu'
+    ).length;
 
-  const getGuruSections = (): MenuSection[] => [
-    {
-      title: 'Utama',
-      items: [
-        { id: 'dashboard', label: 'Dashboard Guru', icon: <LayoutDashboard className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'Pembelajaran',
-      items: [
-        { id: 'data-murid', label: 'Data Siswa', icon: <GraduationCap className="w-5 h-5" /> },
-        { id: 'materi', label: 'Materi PJOK', icon: <BookMarked className="w-5 h-5" /> },
-        { id: 'tugas', label: 'Tugas PJOK', icon: <ClipboardList className="w-5 h-5" /> },
-        { id: 'quiz', label: 'Bank & Kelola Quiz', icon: <CheckCircle className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'Penilaian & Jurnal',
-      items: [
-        { id: 'praktik', label: 'Penilaian Praktik', icon: <Activity className="w-5 h-5" /> },
-        { id: 'refleksi', label: 'Refleksi Pembelajaran', icon: <Sparkles className="w-5 h-5" /> },
-        { id: 'presensi', label: 'Presensi Siswa', icon: <UserCheck className="w-5 h-5" /> },
-        { id: 'rekap-absensi', label: 'Rekapan Absensi', icon: <FileSpreadsheet className="w-5 h-5 text-emerald-400" /> },
-        { id: 'nilai', label: 'Rekap Nilai Siswa', icon: <Award className="w-5 h-5" /> },
-        { id: 'jurnal', label: 'Jurnal Mengajar', icon: <FileText className="w-5 h-5" /> },
-      ],
-    },
-    {
-      title: 'Pengaturan & Profil',
-      items: [
-        { id: 'profil-saya', label: 'Profil Saya', icon: <User className="w-5 h-5" /> },
-        { id: 'settings', label: 'Pengaturan & Reset Data', icon: <Settings className="w-5 h-5" /> },
-      ],
-    },
-  ];
+    return [
+      {
+        title: 'Utama',
+        items: [
+          { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
+        ],
+      },
+      {
+        title: 'Data Pengguna & Pengajar',
+        items: [
+          { id: 'data-murid', label: 'Data Murid', icon: <GraduationCap className="w-5 h-5" /> },
+          { id: 'data-guru', label: 'Data Guru', icon: <UserCheck className="w-5 h-5" /> },
+          { id: 'users', label: 'Kelola Pengguna', icon: <Users className="w-5 h-5" /> },
+          { id: 'kelas', label: 'Kelas & Rombel', icon: <School className="w-5 h-5" /> },
+          { id: 'mapel', label: 'Mata Pelajaran', icon: <BookOpen className="w-5 h-5" /> },
+        ],
+      },
+      {
+        title: 'Pembelajaran & Asesmen',
+        items: [
+          { id: 'materi', label: 'Konten Materi', icon: <BookMarked className="w-5 h-5" /> },
+          { id: 'tugas', label: 'Tugas PJOK', icon: <ClipboardList className="w-5 h-5" /> },
+          { id: 'quiz', label: 'Quiz & Asesmen', icon: <CheckCircle className="w-5 h-5" /> },
+          { id: 'praktik', label: 'Penilaian Praktik', icon: <Activity className="w-5 h-5" /> },
+          { id: 'refleksi', label: 'Refleksi Pembelajaran', icon: <Sparkles className="w-5 h-5" /> },
+          { id: 'jurnal', label: 'Jurnal Mengajar', icon: <FileText className="w-5 h-5" /> },
+          { id: 'rekap-jurnal', label: 'Rekapan Jurnal', icon: <FileSpreadsheet className="w-5 h-5 text-teal-400" /> },
+        ],
+      },
+      {
+        title: 'Laporan & Pengaturan',
+        items: [
+          { id: 'presensi', label: 'Presensi Siswa', icon: <CalendarCheck className="w-5 h-5" /> },
+          { id: 'rekap-absensi', label: 'Rekapan Absensi', icon: <FileSpreadsheet className="w-5 h-5 text-emerald-400" /> },
+          {
+            id: 'surat-izin',
+            label: 'Surat Izin Siswa',
+            icon: <FileText className="w-5 h-5 text-amber-400" />,
+            badge: pendingIzinCount > 0 ? pendingIzinCount : undefined,
+          },
+          { id: 'nilai', label: 'Penilaian & Rapor', icon: <Award className="w-5 h-5" /> },
+          { id: 'profil-saya', label: 'Profil Saya', icon: <User className="w-5 h-5" /> },
+          { id: 'settings', label: 'Pengaturan Sistem', icon: <Settings className="w-5 h-5" /> },
+        ],
+      },
+    ];
+  };
+
+  const getGuruSections = (): MenuSection[] => {
+    const pendingIzinCount = (dataStorage.getDatabase().pengajuanIzin || []).filter(
+      (i) => i.status === 'Menunggu'
+    ).length;
+
+    return [
+      {
+        title: 'Utama',
+        items: [
+          { id: 'dashboard', label: 'Dashboard Guru', icon: <LayoutDashboard className="w-5 h-5" /> },
+        ],
+      },
+      {
+        title: 'Pembelajaran',
+        items: [
+          { id: 'data-murid', label: 'Data Siswa', icon: <GraduationCap className="w-5 h-5" /> },
+          { id: 'materi', label: 'Materi PJOK', icon: <BookMarked className="w-5 h-5" /> },
+          { id: 'tugas', label: 'Tugas PJOK', icon: <ClipboardList className="w-5 h-5" /> },
+          { id: 'quiz', label: 'Bank & Kelola Quiz', icon: <CheckCircle className="w-5 h-5" /> },
+        ],
+      },
+      {
+        title: 'Penilaian & Jurnal',
+        items: [
+          { id: 'praktik', label: 'Penilaian Praktik', icon: <Activity className="w-5 h-5" /> },
+          { id: 'refleksi', label: 'Refleksi Pembelajaran', icon: <Sparkles className="w-5 h-5" /> },
+          { id: 'presensi', label: 'Presensi Siswa', icon: <UserCheck className="w-5 h-5" /> },
+          { id: 'rekap-absensi', label: 'Rekapan Absensi', icon: <FileSpreadsheet className="w-5 h-5 text-emerald-400" /> },
+          {
+            id: 'surat-izin',
+            label: 'Surat Izin & Sakit',
+            icon: <FileText className="w-5 h-5 text-amber-400" />,
+            badge: pendingIzinCount > 0 ? pendingIzinCount : undefined,
+          },
+          { id: 'nilai', label: 'Rekap Nilai Siswa', icon: <Award className="w-5 h-5" /> },
+          { id: 'jurnal', label: 'Jurnal Mengajar', icon: <FileText className="w-5 h-5" /> },
+          { id: 'rekap-jurnal', label: 'Rekapan Jurnal', icon: <FileSpreadsheet className="w-5 h-5 text-teal-400" /> },
+        ],
+      },
+      {
+        title: 'Pengaturan & Profil',
+        items: [
+          { id: 'profil-saya', label: 'Profil Saya', icon: <User className="w-5 h-5" /> },
+          { id: 'settings', label: 'Pengaturan & Reset Data', icon: <Settings className="w-5 h-5" /> },
+        ],
+      },
+    ];
+  };
 
   const getMuridSections = (): MenuSection[] => [
     {
@@ -325,7 +352,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     >
                       {item.icon}
                     </span>
-                    <span className="truncate">{item.label}</span>
+                    <span className="truncate flex-1">{item.label}</span>
+                    {item.badge !== undefined && (
+                      <span className="ml-auto px-2 py-0.5 bg-amber-500 text-white rounded-full text-[10px] font-black animate-pulse shrink-0">
+                        {item.badge}
+                      </span>
+                    )}
                   </button>
                 );
               })}

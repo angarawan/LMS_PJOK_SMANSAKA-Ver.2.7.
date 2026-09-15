@@ -147,12 +147,13 @@ export const GoogleSheetsSyncModal: React.FC<GoogleSheetsSyncModalProps> = ({
     }
   };
 
-  // 2. Pull data from Spreadsheet via Webhook (Sheet -> App)
+  // 2. Pull data from Spreadsheet via Webhook or Direct GViz (Sheet -> App)
   const handlePullFromWebhook = async () => {
-    if (!webhookUrl.trim()) {
+    const target = (webhookUrl || spreadsheetUrl || '').trim();
+    if (!target) {
       setStatusMessage({
         type: 'error',
-        text: 'Masukkan URL Webhook Google Apps Script terlebih dahulu.',
+        text: 'Masukkan URL Google Spreadsheet atau URL Webhook Google Apps Script terlebih dahulu.',
       });
       return;
     }
@@ -161,7 +162,7 @@ export const GoogleSheetsSyncModal: React.FC<GoogleSheetsSyncModalProps> = ({
     setStatusMessage(null);
     try {
       handleSaveSettings();
-      const res = await dataStorage.pullFromLinkedSpreadsheet(webhookUrl.trim());
+      const res = await dataStorage.pullFromLinkedSpreadsheet(target);
       if (res.success) {
         setStatusMessage({
           type: 'success',
@@ -176,7 +177,7 @@ export const GoogleSheetsSyncModal: React.FC<GoogleSheetsSyncModalProps> = ({
     } catch (err: any) {
       setStatusMessage({
         type: 'error',
-        text: err?.message || 'Terjadi kesalahan saat menarik data dari Webhook.',
+        text: err?.message || 'Terjadi kesalahan saat menarik data dari Spreadsheet.',
       });
     } finally {
       setIsLoading(false);

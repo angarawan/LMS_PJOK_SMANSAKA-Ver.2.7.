@@ -47,6 +47,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ db, initialTab =
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [resetPassUser, setResetPassUser] = useState<User | null>(null);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [newPassword, setNewPassword] = useState('123456');
 
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
@@ -263,16 +264,17 @@ export const UserManagement: React.FC<UserManagementProps> = ({ db, initialTab =
 
   const handleDeleteUser = (user: User) => {
     if (user.role === 'ADMIN' && db.users.filter((u) => u.role === 'ADMIN').length <= 1) {
-      alert('Tidak dapat menghapus satu-satunya akun Administrator!');
+      showToast('Tidak dapat menghapus satu-satunya akun Administrator!', 'error');
       return;
     }
-    if (window.confirm(`Hapus pengguna "${user.name}" (@${user.username})?`)) {
-      dataStorage.updateDatabase((prev) => ({
-        ...prev,
-        users: prev.users.filter((u) => u.id !== user.id),
-      }));
-      showToast(`Pengguna "${user.name}" berhasil dihapus.`);
-    }
+    setUserToDelete(user);
+  };
+
+  const confirmDeleteUser = () => {
+    if (!userToDelete) return;
+    dataStorage.deleteUser(userToDelete.id);
+    showToast(`Data ${userToDelete.role === 'MURID' ? 'murid' : 'pengguna'} "${userToDelete.name}" berhasil dihapus.`);
+    setUserToDelete(null);
   };
 
   const handleResetPassword = () => {

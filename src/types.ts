@@ -55,7 +55,11 @@ export interface Materi {
   fase?: 'E' | 'F';
   semester?: '1' | '2';
   tujuanPembelajaran?: string; // Capaian dan Tujuan Pembelajaran (paling di atas)
+  judulDeskripsi?: string; // Nama sub menu uraian diketik manual oleh guru (default: Uraian Materi & Konsep Gerak)
+  namaSubMenuUraian?: string;
   deskripsi: string; // Uraian Materi & Konsep Gerak
+  judulMateriInti?: string; // Nama sub menu materi inti diketik manual oleh guru (default: Materi Inti & Panduan Pelaksanaan Teknik)
+  namaSubMenuInti?: string;
   materiInti?: string; // Materi Inti (penjelasan mendalam & tahapan gerak)
   kontenTeks?: string; // Dukungan teks konten tambahan / alias
   konten?: string;
@@ -501,4 +505,81 @@ export function getTeacherAssignedClasses(teacher: User | null | undefined, allK
   // 4. Fallback: if no specific class is assigned yet, return all classes so teacher can still operate
   return allKelas;
 }
+
+export interface Pengumuman {
+  id: string;
+  judul: string;
+  isi: string;
+  targetRole?: 'ALL' | 'MURID' | 'GURU';
+  targetKelasId?: string; // 'ALL' or specific kelas id e.g. 'cls-xi-1'
+  targetKelasNama?: string;
+  prioritas?: 'Biasa' | 'Penting' | 'Mendesak';
+  lampiranUrl?: string;
+  guruId: string;
+  guruNama: string;
+  tanggalDibuat: string; // ISO string
+  dibacaOleh?: string[]; // user IDs who have read this announcement
+}
+
+/**
+ * Intelligent helper to resolve any class identifier (name, code, or ID) to a valid Kelas ID
+ */
+export function resolveKelasId(
+  rawInput: string | undefined | null,
+  allKelas: Kelas[],
+  fallbackId = 'cls-xi-1'
+): { id: string; nama: string } {
+  if (!allKelas || allKelas.length === 0) {
+    return { id: fallbackId, nama: 'XI 1' };
+  }
+
+  if (!rawInput || !rawInput.trim()) {
+    const defaultK = allKelas.find((k) => k.id === fallbackId) || allKelas[0];
+    return { id: defaultK.id, nama: defaultK.nama };
+  }
+
+  const clean = rawInput.trim();
+  const lower = clean.toLowerCase();
+  const normalized = lower.replace(/[^a-z0-9]/g, '');
+
+  // 1. Direct ID match
+  const matchId = allKelas.find((k) => k.id.toLowerCase() === lower);
+  if (matchId) return { id: matchId.id, nama: matchId.nama };
+
+  // 2. Direct exact name match
+  const matchName = allKelas.find((k) => k.nama.toLowerCase() === lower);
+  if (matchName) return { id: matchName.id, nama: matchName.nama };
+
+  // 3. Normalized name comparison (e.g. "xi1" vs "XI 1", "clsxi1" vs "cls-xi-1")
+  const matchNormalized = allKelas.find((k) => {
+    const kNormId = k.id.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const kNormNama = k.nama.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return kNormId === normalized || kNormNama === normalized;
+  });
+  if (matchNormalized) return { id: matchNormalized.id, nama: matchNormalized.nama };
+
+  // 4. Pattern check (e.g. "11-1" -> "XI 1", "10-1" -> "X 1", "12-1" -> "XII 1")
+  let mappedTingkat = '';
+  if (normalized.startsWith('10') || normalized.startsWith('x') && !normalized.startsWith('xi') && !normalized.startsWith('xii')) {
+    mappedTingkat = 'X';
+  } else if (normalized.startsWith('11') || normalized.startsWith('xi') && !normalized.startsWith('xii')) {
+    mappedTingkat = 'XI';
+  } else if (normalized.startsWith('12') || normalized.startsWith('xii')) {
+    mappedTingkat = 'XII';
+  }
+
+  if (mappedTingkat) {
+    // Extract trailing number
+    const numMatch = normalized.match(/\d+$/);
+    const rombelNum = numMatch ? numMatch[0] : '1';
+    const targetName = `${mappedTingkat} ${rombelNum}`.toLowerCase();
+    const foundByPattern = allKelas.find((k) => k.nama.toLowerCase() === targetName);
+    if (foundByPattern) return { id: foundByPattern.id, nama: foundByPattern.nama };
+  }
+
+  // 5. Fallback
+  const fallback = allKelas.find((k) => k.id === fallbackId) || allKelas[0];
+  return { id: fallback.id, nama: fallback.nama };
+}
+
 

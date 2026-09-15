@@ -12,8 +12,10 @@ import {
   Upload,
   Layers,
   Sparkles,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
-import { User as UserType, getTeacherAssignedClasses } from '../../types';
+import { User as UserType, getTeacherAssignedClasses, resolveKelasId } from '../../types';
 import { dataStorage, LMSDatabase } from '../../services/dataStorage';
 import { UploadDataModal } from '../shared/UploadDataModal';
 
@@ -49,6 +51,8 @@ export const GuruDataMurid: React.FC<GuruDataMuridProps> = ({ db, currentUser, o
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeMuridDetail, setActiveMuridDetail] = useState<UserType | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState<boolean>(false);
+  const [muridToDelete, setMuridToDelete] = useState<UserType | null>(null);
+  const [deleteToast, setDeleteToast] = useState<string | null>(null);
 
   const selectedKelasObj = (db.kelas || []).find((k) => k.id === selectedKelasId);
 
@@ -91,29 +95,62 @@ export const GuruDataMurid: React.FC<GuruDataMuridProps> = ({ db, currentUser, o
 
   const handleImportMurid = (imported: any[]) => {
     if (!imported || imported.length === 0) return;
-    const targetKelasId = selectedKelasId || 'cls-xi-1';
-    const newUsers: UserType[] = imported.map((row, idx) => ({
-      id: row.id || `usr-imp-${Date.now()}-${idx}`,
-      username: row.username || (row.nis ? `siswa_${row.nis}` : `siswa_${Date.now()}_${idx}`),
-      name: row.name || row.nama || `Siswa Baru ${idx + 1}`,
-      role: 'MURID',
-      nis: row.nis || '',
-      nisn: row.nisn || '',
-      kelasId: row.kelasId || targetKelasId,
-      jenisKelamin: (row.jenisKelamin || 'L').toUpperCase().startsWith('P') ? 'P' : 'L',
-      status: 'Aktif',
-      tahunPelajaran: db.settings?.tahunPelajaran || '2026/2027',
-    }));
+    const fallbackKelasId = (selectedKelasId !== 'all' ? selectedKelasId : visibleClasses[0]?.id) || 'cls-xi-1';
+    
+    const newUsers: UserType[] = imported.map((row, idx) => {
+      const resolved = resolveKelasId(row.kelasId || row.kelas, db.kelas, fallbackKelasId);
+      return {
+        id: row.id || `usr-imp-${Date.now()}-${idx}`,
+        username: row.username || (row.nis ? `siswa_${row.nis}` : `siswa_${Date.now()}_${idx}`),
+        name: row.name || row.nama || `Siswa Baru ${idx + 1}`,
+        role: 'MURID',
+        nis: row.nis || '',
+        nisn: row.nisn || '',
+        kelasId: resolved.id,
+        jenisKelamin: (row.jenisKelamin || 'L').toUpperCase().startsWith('P') ? 'P' : 'L',
+        status: 'Aktif',
+        tahunPelajaran: db.settings?.tahunPelajaran || '2026/2027',
+      };
+    });
 
     dataStorage.updateDatabase((prev) => ({
       ...prev,
       users: [...prev.users, ...newUsers],
     }));
     setIsUploadModalOpen(false);
+    setDeleteToast(`Berhasil mengimpor ${newUsers.length} data murid.`);
+    setTimeout(() => setDeleteToast(null), 4000);
+  };
+
+  const confirmDeleteMurid = () => {
+    if (!muridToDelete) return;
+    dataStorage.deleteUser(muridToDelete.id);
+    setDeleteToast(`Data murid ${muridToDelete.name} (NIS: ${muridToDelete.nis || '-'}) berhasil dihapus.`);
+    if (activeMuridDetail?.id === muridToDelete.id) {
+      setActiveMuridDetail(null);
+    }
+    setMuridToDelete(null);
+    setTimeout(() => setDeleteToast(null), 4000);
   };
 
   return (
     <div className="space-y-6">
+      {deleteToast && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-bold flex items-center justify-between animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{deleteToast}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDeleteToast(null)}
+            className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-700"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       {/* Top Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
@@ -258,13 +295,23 @@ export const GuruDataMurid: React.FC<GuruDataMuridProps> = ({ db, currentUser, o
                 </div>
               </div>
 
-              <div className="pt-2 flex items-center justify-between border-t border-slate-100">
-                <button
-                  onClick={() => setActiveMuridDetail(murid)}
-                  className="text-xs text-slate-600 hover:text-slate-900 font-bold"
-                >
-                  Detail Profil
-                </button>
+              <div className="pt-2 flex items-center justify-between border-t border-slate-100 gap-2">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setActiveMuridDetail(murid)}
+                    className="text-xs text-slate-600 hover:text-slate-900 font-bold"
+                  >
+                    Detail
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMuridToDelete(murid)}
+                    title={`Hapus data ${murid.name}`}
+                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
                 <button
                   onClick={() => onNavigatePraktik(murid.id)}
                   className="px-3 py-1.5 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 rounded-xl text-xs font-bold transition-colors flex items-center gap-1"
@@ -352,23 +399,69 @@ export const GuruDataMurid: React.FC<GuruDataMuridProps> = ({ db, currentUser, o
               </div>
             </div>
 
-            <div className="mt-5 flex justify-end">
+            <div className="mt-5 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMuridToDelete(activeMuridDetail)}
+                className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Hapus Siswa Ini
+              </button>
               <button
                 onClick={() => setActiveMuridDetail(null)}
-                className="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold transition-colors"
+                className="flex-1 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-semibold transition-colors"
               >
-                Tutup Profil Siswa
+                Tutup Profil
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {muridToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-2xs p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in fade-in zoom-in duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100 mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div className="text-center space-y-1">
+              <h3 className="text-base font-black text-slate-800">
+                Hapus Data Murid?
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Anda akan menghapus <strong className="text-slate-700">{muridToDelete.name}</strong>{' '}
+                (NIS: {muridToDelete.nis || '-'}). Tindakan ini akan menghapus akun murid, seluruh riwayat presensi, dan nilai terkait. Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setMuridToDelete(null)}
+                className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteMurid}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors shadow-2xs flex items-center justify-center gap-1.5"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Ya, Hapus Murid
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Upload Data Murid Modal */}
       <UploadDataModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         type="murid"
         onImport={handleImportMurid}
+        allKelas={visibleClasses}
+        defaultKelasId={selectedKelasId !== 'all' ? selectedKelasId : visibleClasses[0]?.id}
       />
     </div>
   );

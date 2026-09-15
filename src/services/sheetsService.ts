@@ -1,5 +1,5 @@
 import { getGoogleAccessToken } from './firebaseAuth';
-import { User, UserRole, Materi, PenilaianPraktik } from '../types';
+import { User, UserRole, Materi, PenilaianPraktik, resolveKelasId } from '../types';
 
 export interface SheetMetadata {
   spreadsheetId: string;
@@ -28,20 +28,54 @@ export const REQUIRED_SHEETS = [
 ];
 
 /**
- * Extract spreadsheet ID from full URL or return ID directly
+ * Extract spreadsheet ID from full URL or return ID directly.
+ * Handles standard Google Sheets URLs, published web links (/d/e/2PACX-...), and raw IDs.
  */
 export const extractSpreadsheetId = (urlOrId: string): string | null => {
   if (!urlOrId) return null;
   const trimmed = urlOrId.trim();
-  const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+
+  // 1. Check published web link: /spreadsheets/d/e/(2PACX-[a-zA-Z0-9_-]+)
+  const pubMatch = trimmed.match(/\/spreadsheets\/d\/e\/([a-zA-Z0-9_-]+)/i);
+  if (pubMatch && pubMatch[1]) {
+    return pubMatch[1];
+  }
+
+  // 2. Check standard edit/view link: /spreadsheets/d/([a-zA-Z0-9_-]{20,})
+  const match = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]{20,})/i);
   if (match && match[1]) {
     return match[1];
   }
-  // Check if it's already an ID
+
+  // 3. Check if it's already a raw ID (20+ chars, or published 2PACX-...)
   if (/^[a-zA-Z0-9_-]{20,}$/.test(trimmed)) {
     return trimmed;
   }
+
+  // 4. Fallback: match any segment after /spreadsheets/d/ that is not "e"
+  const fallback = trimmed.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/i);
+  if (fallback && fallback[1] && fallback[1].toLowerCase() !== 'e') {
+    return fallback[1];
+  }
+
   return null;
+};
+
+/**
+ * Extract sheet gid (tab ID) from URL if present (e.g. #gid=12345 or ?gid=12345)
+ */
+export const extractGid = (urlOrId: string): string | null => {
+  if (!urlOrId) return null;
+  const match = urlOrId.match(/[#&?]gid=([0-9]+)/);
+  return match ? match[1] : null;
+};
+
+/**
+ * Check if the spreadsheet is a published web link (starts with 2PACX- or has /d/e/)
+ */
+export const isPublishedSpreadsheet = (urlOrId: string): boolean => {
+  if (!urlOrId) return false;
+  return urlOrId.includes('/d/e/') || urlOrId.startsWith('2PACX-') || urlOrId.includes('2PACX-');
 };
 
 export const createPJOKSpreadsheet = async (title: string = 'LMS_PJOK_DATABASE_2026'): Promise<SheetMetadata> => {
@@ -158,7 +192,7 @@ export const fetchSheetData = async (
   }
 
   const res = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1:Z500`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(sheetName)}!A1:Z1000`,
     {
       headers: { Authorization: `Bearer ${token}` },
     }
@@ -178,7 +212,7 @@ export const fetchSheetData = async (
     headers.forEach((h: string, idx: number) => {
       const val = row[idx] ?? '';
       try {
-        if (val.startsWith('{') || val.startsWith('[')) {
+        if (typeof val === 'string' && (val.startsWith('{') || val.startsWith('['))) {
           obj[h] = JSON.parse(val);
         } else {
           obj[h] = val;
@@ -194,6 +228,87 @@ export const fetchSheetData = async (
 };
 
 /**
+ * Fetch all sheets from Google Spreadsheet via official Google Sheets REST API v4.
+ * Uses Google OAuth token to access even private documents and discover all sheet tab names.
+ */
+export const fetchAllSheetsViaGoogleApi = async (
+  spreadsheetId: string
+): Promise<{
+  success: boolean;
+  sheets: Record<string, any[]>;
+  sheetTitles: string[];
+  message: string;
+}> => {
+  const token = getGoogleAccessToken();
+  if (!token) {
+    return {
+      success: false,
+      sheets: {},
+      sheetTitles: [],
+      message: 'Akses token Google tidak tersedia. Sambungkan Akun Google terlebih dahulu.',
+    };
+  }
+
+  try {
+    // 1. Get spreadsheet metadata (list of all sheets)
+    const metaRes = await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties(sheetId,title)`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    if (!metaRes.ok) {
+      const errText = await metaRes.text();
+      return {
+        success: false,
+        sheets: {},
+        sheetTitles: [],
+        message: `HTTP ${metaRes.status}: Gagal membaca metadata Spreadsheet (${errText.slice(0, 150)})`,
+      };
+    }
+
+    const meta = await metaRes.json();
+    const sheetTitles: string[] = (meta.sheets || []).map((s: any) => s.properties?.title).filter(Boolean);
+
+    if (sheetTitles.length === 0) {
+      return {
+        success: false,
+        sheets: {},
+        sheetTitles: [],
+        message: 'Tidak ada sheet yang ditemukan dalam Spreadsheet ini.',
+      };
+    }
+
+    // 2. Fetch data for each sheet tab
+    const sheetsData: Record<string, any[]> = {};
+    for (const title of sheetTitles) {
+      try {
+        const rows = await fetchSheetData(spreadsheetId, title);
+        sheetsData[title] = rows;
+      } catch (sheetErr) {
+        console.warn(`Gagal membaca sheet ${title}:`, sheetErr);
+        sheetsData[title] = [];
+      }
+    }
+
+    return {
+      success: true,
+      sheets: sheetsData,
+      sheetTitles,
+      message: `Berhasil membaca ${sheetTitles.length} lembar sheet via Google Sheets API.`,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      sheets: {},
+      sheetTitles: [],
+      message: `Koneksi Google Sheets API gagal: ${err?.message || 'Error tidak diketahui'}`,
+    };
+  }
+};
+
+/**
  * Robust CSV parser that handles commas inside quotes, multi-line values, and tab/semicolon separators.
  */
 export const parseCSV = (text: string): string[][] => {
@@ -205,12 +320,12 @@ export const parseCSV = (text: string): string[][] => {
   let currentVal = '';
   let insideQuote = false;
 
-  // Auto detect delimiter (tab, semicolon, or comma)
-  const firstLine = clean.split(/\r?\n/)[0] || '';
+  // Auto detect delimiter (tab, semicolon, or comma) across the first few lines
+  const sampleLines = clean.split(/\r?\n/).slice(0, 5).join('\n');
   let delimiter = ',';
-  if (firstLine.includes('\t')) {
+  if (sampleLines.includes('\t')) {
     delimiter = '\t';
-  } else if (firstLine.includes(';') && !firstLine.includes(',')) {
+  } else if (sampleLines.includes(';') && !sampleLines.includes(',')) {
     delimiter = ';';
   }
 
@@ -254,23 +369,64 @@ export const parseCSV = (text: string): string[][] => {
 };
 
 /**
- * Parse CSV text into User records
- * Supports format: id,username,role,name,nip,email,status,avatar
+ * Parse CSV text into User records with intelligent header detection and flexible column matching.
+ * Tolerates title banner rows (e.g. school header) and Indonesian school column naming variations.
  */
 export const parseCSVToUsers = (csvText: string): User[] => {
   const rows = parseCSV(csvText);
   if (rows.length < 2) return [];
 
-  const rawHeaders = rows[0].map((h) => h.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''));
+  // 1. Detect actual header row (in case row 0-2 contain title banners like "DAFTAR SISWA KELAS XI")
+  let headerIndex = 0;
+  const headerKeywords = [
+    'nama',
+    'name',
+    'nis',
+    'nisn',
+    'nip',
+    'siswa',
+    'murid',
+    'user',
+    'username',
+    'kelas',
+    'rombel',
+    'gender',
+    'jk',
+    'role',
+    'peran',
+  ];
+
+  for (let r = 0; r < Math.min(rows.length, 10); r++) {
+    const rowCells = rows[r].map((c) => c.toLowerCase().trim().replace(/[^a-z0-9]/g, ''));
+    const matches = rowCells.filter((c) => headerKeywords.some((kw) => c.includes(kw) || kw.includes(c)));
+    if (matches.length >= 2) {
+      headerIndex = r;
+      break;
+    }
+  }
+
+  const rawHeaders = rows[headerIndex].map((h) => h.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''));
   const headerMap: Record<string, number> = {};
   rawHeaders.forEach((h, idx) => {
     headerMap[h] = idx;
   });
 
+  // Flexible column retrieval: exact match first, then substring match
   const getCol = (r: string[], colNames: string[]): string => {
+    // 1. Exact match
     for (const name of colNames) {
       if (headerMap[name] !== undefined && r[headerMap[name]] !== undefined) {
-        return r[headerMap[name]].trim();
+        const val = r[headerMap[name]].trim();
+        if (val) return val;
+      }
+    }
+    // 2. Substring / contains match (e.g., 'namasiswa' matches 'nama')
+    for (const name of colNames) {
+      for (const [h, colIdx] of Object.entries(headerMap)) {
+        if ((h.includes(name) || name.includes(h)) && r[colIdx] !== undefined) {
+          const val = r[colIdx].trim();
+          if (val) return val;
+        }
       }
     }
     return '';
@@ -278,26 +434,55 @@ export const parseCSVToUsers = (csvText: string): User[] => {
 
   const users: User[] = [];
 
-  for (let i = 1; i < rows.length; i++) {
+  for (let i = headerIndex + 1; i < rows.length; i++) {
     const row = rows[i];
     if (row.length === 0 || row.every((c) => !c)) continue;
 
+    // Check if row is another sub-banner or empty
+    const testLine = row.join(' ').toLowerCase();
+    if (testLine.includes('daftar siswa') || testLine.includes('tahun pelajaran') || testLine.includes('rekapitulasi')) {
+      continue;
+    }
+
+    const name = getCol(row, [
+      'namasiswa',
+      'namamurid',
+      'namapesertadidik',
+      'namalengkap',
+      'nama',
+      'name',
+      'pesertadidik',
+      'siswa',
+      'murid',
+    ]);
+    const nipOrNis = getCol(row, [
+      'nis',
+      'nisn',
+      'noinduk',
+      'nomorinduk',
+      'induk',
+      'nip',
+      'nik',
+    ]);
+
+    // If both name and nip/nis are missing, skip row
+    if (!name && !nipOrNis) continue;
+
     const id = getCol(row, ['id', 'userid']) || `usr-${Date.now()}-${i}`;
-    const username = getCol(row, ['username', 'user', 'nis', 'nip']) || `user${i}`;
-    let roleStr = getCol(row, ['role', 'peran']).toUpperCase();
+    const username = getCol(row, ['username', 'user']) || nipOrNis || (name ? name.toLowerCase().replace(/[^a-z0-9]/g, '') : `user${i}`);
+
+    let roleStr = getCol(row, ['role', 'peran', 'jabatan', 'tipe']).toUpperCase();
     let role: UserRole = 'MURID';
     if (roleStr.includes('ADMIN')) {
       role = 'ADMIN';
-    } else if (roleStr.includes('GURU')) {
+    } else if (roleStr.includes('GURU') || getCol(row, ['nip'])) {
       role = 'GURU';
     } else {
       role = 'MURID';
     }
 
-    const name = getCol(row, ['name', 'nama', 'namalengkap']) || username;
-    const nipOrNis = getCol(row, ['nip', 'nis', 'nisn', 'nomorinduk']);
-    const email = getCol(row, ['email', 'surel']);
-    const statusRaw = getCol(row, ['status']);
+    const email = getCol(row, ['email', 'surel', 'mail', 'alamatemail']);
+    const statusRaw = getCol(row, ['status', 'keaktifan', 'keterangan']);
     const status: 'Aktif' | 'Nonaktif' = statusRaw.toLowerCase().includes('non') ? 'Nonaktif' : 'Aktif';
     const avatar = getCol(row, ['avatar', 'foto', 'image', 'fotoprofil']);
 
@@ -305,7 +490,7 @@ export const parseCSVToUsers = (csvText: string): User[] => {
       id,
       username,
       role,
-      name,
+      name: name || username,
       email: email || undefined,
       status,
       avatar: avatar || undefined,
@@ -314,34 +499,68 @@ export const parseCSVToUsers = (csvText: string): User[] => {
     if (role === 'ADMIN' || role === 'GURU') {
       user.nip = nipOrNis || undefined;
       user.mataPelajaran = role === 'GURU' ? 'PJOK Fase E & F' : undefined;
+      const rawDiampu = getCol(row, ['kelasdiampu', 'diampu', 'mengajar', 'kelas']);
+      if (rawDiampu) {
+        user.kelasDiampu = rawDiampu.split(/[,;]+/).map((s) => s.trim()).filter(Boolean);
+      }
     } else {
       // Murid
       user.nis = nipOrNis || undefined;
-      user.kelasId = 'cls-xi-1';
+      const rawKelas = getCol(row, [
+        'kelas',
+        'rombel',
+        'tingkat',
+        'kelassiswa',
+        'kelasid',
+        'namakelas',
+        'idkelas',
+        'ruangkelas',
+        'class',
+      ]);
+
+      const standardKelas: any[] = [
+        { id: 'cls-xi-1', nama: 'XI 1', tingkat: 'XI', jurusan: 'Umum' },
+        { id: 'cls-xi-2', nama: 'XI 2', tingkat: 'XI', jurusan: 'Umum' },
+        { id: 'cls-xi-3', nama: 'XI 3', tingkat: 'XI', jurusan: 'Umum' },
+        { id: 'cls-x-1', nama: 'X 1', tingkat: 'X', jurusan: 'Umum' },
+        { id: 'cls-x-2', nama: 'X 2', tingkat: 'X', jurusan: 'Umum' },
+        { id: 'cls-xii-1', nama: 'XII 1', tingkat: 'XII', jurusan: 'Umum' },
+      ];
+      const resolved = resolveKelasId(rawKelas, standardKelas as any, 'cls-xi-1');
+      user.kelasId = resolved.id;
       user.tahunPelajaran = '2026/2027';
-      // Detect gender guess from name
-      const lowerName = name.toLowerCase();
-      if (
-        lowerName.includes('ni ') ||
-        lowerName.includes('putu ') ||
-        lowerName.includes('dewi') ||
-        lowerName.includes('ayu') ||
-        lowerName.includes('luh ') ||
-        lowerName.includes('komang ayu') ||
-        lowerName.includes('savitri') ||
-        lowerName.includes('purwani') ||
-        lowerName.includes('caitanya') ||
-        lowerName.includes('febriana') ||
-        lowerName.includes('vitare') ||
-        lowerName.includes('sinthya') ||
-        lowerName.includes('cintya') ||
-        lowerName.includes('sinta') ||
-        lowerName.includes('nadine') ||
-        lowerName.includes('ida ayu')
-      ) {
+
+      // Gender from CSV or guess
+      const rawJk = getCol(row, ['jk', 'jeniskelamin', 'gender', 'sex', 'lp']).toUpperCase();
+      if (rawJk.startsWith('P') || rawJk.includes('PEREMPUAN') || rawJk.includes('WANITA')) {
         user.jenisKelamin = 'P';
-      } else {
+      } else if (rawJk.startsWith('L') || rawJk.includes('LAKI') || rawJk.includes('PRIA')) {
         user.jenisKelamin = 'L';
+      } else {
+        // Detect gender guess from Balinese/Indonesian names
+        const lowerName = (name || '').toLowerCase();
+        if (
+          lowerName.includes('ni ') ||
+          lowerName.includes('putu ') ||
+          lowerName.includes('dewi') ||
+          lowerName.includes('ayu') ||
+          lowerName.includes('luh ') ||
+          lowerName.includes('komang ayu') ||
+          lowerName.includes('savitri') ||
+          lowerName.includes('purwani') ||
+          lowerName.includes('caitanya') ||
+          lowerName.includes('febriana') ||
+          lowerName.includes('vitare') ||
+          lowerName.includes('sinthya') ||
+          lowerName.includes('cintya') ||
+          lowerName.includes('sinta') ||
+          lowerName.includes('nadine') ||
+          lowerName.includes('ida ayu')
+        ) {
+          user.jenisKelamin = 'P';
+        } else {
+          user.jenisKelamin = 'L';
+        }
       }
     }
 
@@ -353,10 +572,10 @@ export const parseCSVToUsers = (csvText: string): User[] => {
 
 /**
  * Export users array to CSV matching the user's exact specification:
- * id,username,role,name,nip,email,status,avatar
+ * id,username,role,name,nip,kelas,jenisKelamin,email,status,avatar
  */
 export const exportUsersToCSV = (users: User[]): string => {
-  const headers = ['id', 'username', 'role', 'name', 'nip', 'email', 'status', 'avatar'];
+  const headers = ['id', 'username', 'role', 'name', 'nip', 'kelas', 'jenisKelamin', 'email', 'status', 'avatar'];
   const escapeCell = (val: any): string => {
     if (val === undefined || val === null) return '';
     const str = String(val);
@@ -369,12 +588,16 @@ export const exportUsersToCSV = (users: User[]): string => {
   const rows = users.map((u) => {
     const nipVal = u.role === 'MURID' ? u.nis || u.nip || '' : u.nip || '';
     const roleVal = u.role === 'MURID' ? (u.username.startsWith('murid') ? u.username : 'MURID') : u.role;
+    const kelasVal = u.kelasId || '';
+    const jkVal = u.jenisKelamin || '';
     return [
       escapeCell(u.id),
       escapeCell(u.username),
       escapeCell(roleVal),
       escapeCell(u.name),
       escapeCell(nipVal),
+      escapeCell(kelasVal),
+      escapeCell(jkVal),
       escapeCell(u.email || ''),
       escapeCell(u.status),
       escapeCell(u.avatar || ''),
@@ -454,8 +677,9 @@ export const syncViaAppsScriptWebhook = async (
 };
 
 /**
- * Fetch data directly from Google Sheets via Google Visualization API (GViz) CSV
+ * Fetch data directly from Google Sheets via Google Visualization API (GViz) CSV or CSV Export.
  * Works if the Google Sheet has "Anyone with the link can view" permission without needing Apps Script!
+ * Automatically tries tab aliases, omission of sheet parameter (default sheet), gid, and CSV export.
  */
 export const fetchSheetViaGViz = async (
   spreadsheetIdOrUrl: string,
@@ -466,6 +690,7 @@ export const fetchSheetViaGViz = async (
   csvText: string;
   statusCode: number;
   message: string;
+  detectedSheetTitle?: string;
 }> => {
   const spreadsheetId = extractSpreadsheetId(spreadsheetIdOrUrl);
   if (!spreadsheetId) {
@@ -478,51 +703,249 @@ export const fetchSheetViaGViz = async (
     };
   }
 
-  const gvizUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const gid = extractGid(spreadsheetIdOrUrl);
+  const isPub = isPublishedSpreadsheet(spreadsheetIdOrUrl);
 
-  try {
-    const res = await fetch(gvizUrl, { method: 'GET' });
-    const statusCode = res.status;
-    const text = await res.text();
+  // 1. Try Google Sheets REST API first if OAuth token is available
+  const token = getGoogleAccessToken();
+  if (token && !isPub) {
+    try {
+      const apiRes = await fetchAllSheetsViaGoogleApi(spreadsheetId);
+      if (apiRes.success && apiRes.sheets) {
+        // Find matching sheet
+        const sheetKeys = Object.keys(apiRes.sheets);
+        let foundUsers: User[] = [];
+        let matchedTitle = '';
 
-    if (!res.ok) {
-      return {
-        success: false,
-        data: [],
-        csvText: text.slice(0, 300),
-        statusCode,
-        message: `HTTP ${statusCode}: Gagal membaca data GViz. Pastikan Spreadsheet disetel "Siapa saja dengan link dapat melihat".`,
-      };
+        for (const title of sheetKeys) {
+          const lower = title.toLowerCase();
+          if (
+            lower.includes('user') ||
+            lower.includes('murid') ||
+            lower.includes('siswa') ||
+            lower.includes('peserta') ||
+            title === sheetName
+          ) {
+            const rawRows = apiRes.sheets[title];
+            if (rawRows.length > 0) {
+              // Convert object rows back to users
+              foundUsers = rawRows.map((r: any, idx: number) => {
+                const name = r.name || r.nama || r.namasiswa || r.namalengkap || `Siswa ${idx + 1}`;
+                const nis = r.nis || r.nisn || r.noinduk || '';
+                const role = (r.role || (r.nip ? 'GURU' : 'MURID')).toUpperCase().includes('GURU') ? 'GURU' : 'MURID';
+                return {
+                  id: r.id || `usr-${Date.now()}-${idx}`,
+                  username: r.username || nis || name.toLowerCase().replace(/[^a-z0-9]/g, ''),
+                  name,
+                  role,
+                  nis: role === 'MURID' ? nis : undefined,
+                  nip: role !== 'MURID' ? (r.nip || nis) : undefined,
+                  kelasId: r.kelasId || r.kelas || 'cls-xi-1',
+                  jenisKelamin: (r.jenisKelamin || r.jk || 'L').toUpperCase().startsWith('P') ? 'P' : 'L',
+                  status: 'Aktif',
+                } as User;
+              });
+              matchedTitle = title;
+              break;
+            }
+          }
+        }
+
+        // If no specifically named sheet found, but there's at least one sheet with rows
+        if (foundUsers.length === 0 && sheetKeys.length > 0) {
+          const firstKey = sheetKeys[0];
+          const rawRows = apiRes.sheets[firstKey];
+          if (rawRows.length > 0) {
+            foundUsers = rawRows.map((r: any, idx: number) => ({
+              id: r.id || `usr-${Date.now()}-${idx}`,
+              username: r.username || r.nis || `user${idx + 1}`,
+              name: r.name || r.nama || r.namasiswa || `Siswa ${idx + 1}`,
+              role: (r.role || 'MURID').toUpperCase().includes('GURU') ? 'GURU' : 'MURID',
+              nis: r.nis || r.nisn || '',
+              kelasId: r.kelasId || r.kelas || 'cls-xi-1',
+              jenisKelamin: (r.jenisKelamin || r.jk || 'L').toUpperCase().startsWith('P') ? 'P' : 'L',
+              status: 'Aktif',
+            } as User));
+            matchedTitle = firstKey;
+          }
+        }
+
+        if (foundUsers.length > 0) {
+          return {
+            success: true,
+            data: foundUsers,
+            csvText: '',
+            statusCode: 200,
+            message: `Berhasil menarik ${foundUsers.length} data pengguna dari sheet "${matchedTitle}" via Akun Google!`,
+            detectedSheetTitle: matchedTitle,
+          };
+        }
+      }
+    } catch (oauthErr) {
+      console.warn('OAuth Sheets API attempt failed, proceeding to public GViz/CSV:', oauthErr);
     }
+  }
 
-    // If Google returned HTML instead of CSV (usually login or private error)
-    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-      return {
-        success: false,
-        data: [],
-        csvText: text.slice(0, 300),
-        statusCode: 403,
-        message: 'Google Spreadsheet bersifat Privat. Ubah akses di menu Bagikan (Share) menjadi "Siapa saja yang memiliki tautan (Anyone with link: Viewer)".',
-      };
+  // 2. Build URL candidates for GViz / CSV Export
+  const candidateUrls: Array<{ url: string; label: string }> = [];
+
+  // A. Published Web link
+  if (isPub) {
+    candidateUrls.push({
+      url: `https://docs.google.com/spreadsheets/d/e/${spreadsheetId}/pub?output=csv${gid ? `&gid=${gid}` : ''}`,
+      label: 'Published CSV Web Export',
+    });
+  }
+
+  // B. Specific GID if available in original URL
+  if (gid) {
+    candidateUrls.push({
+      url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&gid=${gid}`,
+      label: `GViz with gid=${gid}`,
+    });
+    candidateUrls.push({
+      url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv&gid=${gid}`,
+      label: `CSV Export with gid=${gid}`,
+    });
+  }
+
+  // C. Requested sheet name
+  if (sheetName && sheetName !== 'ALL') {
+    candidateUrls.push({
+      url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`,
+      label: `GViz Sheet "${sheetName}"`,
+    });
+  }
+
+  // D. Common sheet tab names in Indonesian school spreadsheets
+  const commonTabNames = [
+    'Sheet1',
+    'Sheet 1',
+    'USERS',
+    'users',
+    'MURID',
+    'Murid',
+    'Data Siswa',
+    'DATA SISWA',
+    'Siswa',
+    'SISWA',
+    'Data Murid',
+    'DATA MURID',
+    'Daftar Siswa',
+    'Peserta Didik',
+    'Lembar1',
+    'Lembar 1',
+  ];
+
+  for (const tab of commonTabNames) {
+    if (tab.toLowerCase() !== (sheetName || '').toLowerCase()) {
+      candidateUrls.push({
+        url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`,
+        label: `GViz Tab "${tab}"`,
+      });
     }
+  }
 
-    const users = parseCSVToUsers(text);
-    return {
-      success: true,
-      data: users,
-      csvText: text,
-      statusCode,
-      message: `Berhasil mengambil ${users.length} pengguna via GViz CSV langsung!`,
-    };
-  } catch (err: any) {
+  // E. Primary default tab (no sheet param specified)
+  candidateUrls.push({
+    url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv`,
+    label: 'GViz Primary (Default) Sheet',
+  });
+
+  // F. Direct export fallback
+  candidateUrls.push({
+    url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=csv`,
+    label: 'Google Sheets Direct CSV Export',
+  });
+
+  let lastStatusCode = 0;
+  let lastText = '';
+  let hadPrivateAccessError = false;
+
+  for (const candidate of candidateUrls) {
+    try {
+      const res = await fetch(candidate.url, { method: 'GET' });
+      lastStatusCode = res.status;
+      const text = await res.text();
+      lastText = text;
+
+      if (!res.ok) {
+        // If 401 or 403, sheet is private
+        if (res.status === 401 || res.status === 403) {
+          hadPrivateAccessError = true;
+        }
+        continue;
+      }
+
+      // Check if Google redirected to HTML login page
+      const trimmed = text.trim();
+      if (
+        trimmed.startsWith('<!DOCTYPE') ||
+        trimmed.startsWith('<html') ||
+        trimmed.includes('accounts.google.com') ||
+        trimmed.includes('ServiceLogin')
+      ) {
+        hadPrivateAccessError = true;
+        continue;
+      }
+
+      // Check if GViz returned a query error like "Sheet '...' does not exist"
+      if (trimmed.includes('google.visualization.Query.setResponse')) {
+        if (trimmed.includes('does not exist') || trimmed.includes('invalid_query')) {
+          continue; // Try next tab candidate
+        }
+      }
+
+      // Attempt parsing
+      const users = parseCSVToUsers(text);
+      if (users.length > 0) {
+        return {
+          success: true,
+          data: users,
+          csvText: text,
+          statusCode: 200,
+          message: `Berhasil menarik ${users.length} siswa/pengguna (${candidate.label})!`,
+          detectedSheetTitle: candidate.label,
+        };
+      }
+    } catch {
+      // Network or CORS error on candidate, proceed to next
+      continue;
+    }
+  }
+
+  // If private access was encountered
+  if (hadPrivateAccessError) {
     return {
       success: false,
       data: [],
-      csvText: '',
-      statusCode: 0,
-      message: `Koneksi ke GViz gagal: ${err?.message || 'Periksa koneksi internet / izin Spreadsheet'}.`,
+      csvText: lastText.slice(0, 300),
+      statusCode: 403,
+      message:
+        'Spreadsheet bersifat Privat (Akses Ditolak). Silakan buka Spreadsheet Anda -> klik "Bagikan" (Share) di pojok kanan atas -> ubah "Akses umum" menjadi "Siapa saja yang memiliki tautan" (Pelihat / Viewer), atau gunakan tombol "Sambungkan Google" di LMS.',
     };
   }
+
+  // If we got CSV text but no users could be parsed
+  if (lastText && lastText.length > 20 && !lastText.startsWith('<')) {
+    return {
+      success: false,
+      data: [],
+      csvText: lastText.slice(0, 500),
+      statusCode: 200,
+      message:
+        'Spreadsheet berhasil dihubungi, namun format kolom tidak dikenali. Pastikan baris judul memuat kolom seperti "Nama Siswa" (atau Nama) dan "NIS" (atau No Induk / Kelas).',
+    };
+  }
+
+  return {
+    success: false,
+    data: [],
+    csvText: '',
+    statusCode: lastStatusCode || 0,
+    message:
+      'Gagal membaca Google Spreadsheet. Pastikan Spreadsheet dapat diakses publik (Akses umum: Siapa saja yang memiliki link) atau periksa koneksi internet Anda.',
+  };
 };
 
 /**
@@ -552,7 +975,8 @@ export const fetchViaAppsScriptWebhook = async (
 
   // Detect if user mistakenly pasted a Google Spreadsheet URL into the Webhook field
   if (webhookUrl.includes('docs.google.com/spreadsheets')) {
-    const gvizRes = await fetchSheetViaGViz(webhookUrl, sheetName);
+    const targetSheet = sheetName === 'ALL' ? 'USERS' : sheetName;
+    const gvizRes = await fetchSheetViaGViz(webhookUrl, targetSheet);
     return {
       success: gvizRes.success,
       data: gvizRes.data,
@@ -624,11 +1048,17 @@ export const fetchViaAppsScriptWebhook = async (
     }
 
     // Normalizing parsed response structure
-    let extractedData: any[] = [];
+    let extractedData: any = [];
     if (Array.isArray(parsed)) {
       extractedData = parsed;
     } else if (parsed && typeof parsed === 'object') {
-      if (Array.isArray(parsed.data)) {
+      if (parsed.data && typeof parsed.data === 'object' && !Array.isArray(parsed.data)) {
+        // Multi-table payload
+        extractedData = parsed.data;
+      } else if (parsed.USERS || parsed.users || parsed.MATERI || parsed.materi || parsed.NILAI || parsed.nilai) {
+        // Direct multi-table object
+        extractedData = parsed;
+      } else if (Array.isArray(parsed.data)) {
         extractedData = parsed.data;
       } else if (Array.isArray(parsed.USERS)) {
         extractedData = parsed.USERS;
@@ -636,18 +1066,19 @@ export const fetchViaAppsScriptWebhook = async (
         extractedData = parsed.users;
       } else if (Array.isArray(parsed.rows)) {
         extractedData = parsed.rows;
-      } else if (parsed.data && typeof parsed.data === 'object' && Array.isArray(parsed.data.USERS)) {
-        extractedData = parsed.data.USERS;
+      } else {
+        extractedData = parsed;
       }
     }
 
-    const isSuccess = parsed.status === 'success' || parsed.success === true || extractedData.length > 0;
+    const hasData = Array.isArray(extractedData) ? extractedData.length > 0 : Object.keys(extractedData || {}).length > 0;
+    const isSuccess = parsed.status === 'success' || parsed.success === true || hasData;
 
     return {
       success: isSuccess,
       data: extractedData,
       status: parsed.status || (isSuccess ? 'success' : 'error'),
-      message: parsed.message || (isSuccess ? `Berhasil menerima ${extractedData.length} baris data.` : 'Tidak ada data yang ditemukan.'),
+      message: parsed.message || (isSuccess ? 'Berhasil menerima data dari Google Apps Script.' : 'Tidak ada data yang ditemukan.'),
       statusCode,
       rawText: text.slice(0, 400),
     };
@@ -684,13 +1115,24 @@ export const fetchFromPublicSheetCSV = async (csvUrl: string): Promise<string> =
 };
 
 /**
- * Parse CSV text to partial Materi objects
+ * Parse CSV text to partial Materi objects with intelligent header detection
  */
 export const parseCSVToMateri = (csvText: string): Partial<Materi>[] => {
   const rows = parseCSV(csvText);
   if (rows.length < 2) return [];
 
-  const rawHeaders = rows[0].map((h) => h.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''));
+  // Detect header row
+  let headerIndex = 0;
+  const keywords = ['judul', 'materi', 'topik', 'fase', 'kategori', 'capaian', 'tujuan'];
+  for (let r = 0; r < Math.min(rows.length, 5); r++) {
+    const rowCells = rows[r].map((c) => c.toLowerCase().trim().replace(/[^a-z0-9]/g, ''));
+    if (rowCells.some((c) => keywords.some((kw) => c.includes(kw)))) {
+      headerIndex = r;
+      break;
+    }
+  }
+
+  const rawHeaders = rows[headerIndex].map((h) => h.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''));
   const headerMap: Record<string, number> = {};
   rawHeaders.forEach((h, idx) => {
     headerMap[h] = idx;
@@ -699,16 +1141,25 @@ export const parseCSVToMateri = (csvText: string): Partial<Materi>[] => {
   const getCol = (r: string[], colNames: string[]): string => {
     for (const name of colNames) {
       if (headerMap[name] !== undefined && r[headerMap[name]] !== undefined) {
-        return r[headerMap[name]].trim();
+        const v = r[headerMap[name]].trim();
+        if (v) return v;
+      }
+    }
+    for (const name of colNames) {
+      for (const [h, colIdx] of Object.entries(headerMap)) {
+        if ((h.includes(name) || name.includes(h)) && r[colIdx] !== undefined) {
+          const v = r[colIdx].trim();
+          if (v) return v;
+        }
       }
     }
     return '';
   };
 
   const list: Partial<Materi>[] = [];
-  for (let i = 1; i < rows.length; i++) {
+  for (let i = headerIndex + 1; i < rows.length; i++) {
     const r = rows[i];
-    const judul = getCol(r, ['judul', 'materi', 'title', 'nama', 'topik']);
+    const judul = getCol(r, ['judul', 'materi', 'title', 'nama', 'topik', 'namamateri']);
     if (!judul) continue;
 
     list.push({
@@ -733,13 +1184,23 @@ export const parseCSVToMateri = (csvText: string): Partial<Materi>[] => {
 };
 
 /**
- * Parse CSV text to partial PenilaianPraktik objects
+ * Parse CSV text to partial PenilaianPraktik objects with intelligent header detection
  */
 export const parseCSVToNilai = (csvText: string): Partial<PenilaianPraktik>[] => {
   const rows = parseCSV(csvText);
   if (rows.length < 2) return [];
 
-  const rawHeaders = rows[0].map((h) => h.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''));
+  let headerIndex = 0;
+  const keywords = ['murid', 'siswa', 'nama', 'nilai', 'skor', 'materi', 'predikat'];
+  for (let r = 0; r < Math.min(rows.length, 5); r++) {
+    const rowCells = rows[r].map((c) => c.toLowerCase().trim().replace(/[^a-z0-9]/g, ''));
+    if (rowCells.some((c) => keywords.some((kw) => c.includes(kw)))) {
+      headerIndex = r;
+      break;
+    }
+  }
+
+  const rawHeaders = rows[headerIndex].map((h) => h.toLowerCase().trim().replace(/[^a-z0-9_]/g, ''));
   const headerMap: Record<string, number> = {};
   rawHeaders.forEach((h, idx) => {
     headerMap[h] = idx;
@@ -748,19 +1209,28 @@ export const parseCSVToNilai = (csvText: string): Partial<PenilaianPraktik>[] =>
   const getCol = (r: string[], colNames: string[]): string => {
     for (const name of colNames) {
       if (headerMap[name] !== undefined && r[headerMap[name]] !== undefined) {
-        return r[headerMap[name]].trim();
+        const v = r[headerMap[name]].trim();
+        if (v) return v;
+      }
+    }
+    for (const name of colNames) {
+      for (const [h, colIdx] of Object.entries(headerMap)) {
+        if ((h.includes(name) || name.includes(h)) && r[colIdx] !== undefined) {
+          const v = r[colIdx].trim();
+          if (v) return v;
+        }
       }
     }
     return '';
   };
 
   const list: Partial<PenilaianPraktik>[] = [];
-  for (let i = 1; i < rows.length; i++) {
+  for (let i = headerIndex + 1; i < rows.length; i++) {
     const r = rows[i];
-    const muridNama = getCol(r, ['muridnama', 'nama', 'namamurid', 'siswa', 'namasiswa']);
+    const muridNama = getCol(r, ['muridnama', 'nama', 'namamurid', 'siswa', 'namasiswa', 'pesertadidik']);
     if (!muridNama) continue;
 
-    const nilaiAkhirNum = parseFloat(getCol(r, ['nilaiakhir', 'nilai', 'skorakhir'])) || 0;
+    const nilaiAkhirNum = parseFloat(getCol(r, ['nilaiakhir', 'nilai', 'skorakhir', 'angka'])) || 0;
     const totalSkorNum = parseFloat(getCol(r, ['totalskor', 'skor', 'poin'])) || 0;
 
     list.push({
@@ -783,6 +1253,7 @@ export const parseCSVToNilai = (csvText: string): Partial<PenilaianPraktik>[] =>
 
 /**
  * Fetch table from Google Sheets directly via Google Visualization API (GViz)
+ * Tries tab aliases if the requested tab doesn't exist
  */
 export const fetchSheetTableViaGViz = async (
   spreadsheetIdOrUrl: string,
@@ -805,71 +1276,74 @@ export const fetchSheetTableViaGViz = async (
     };
   }
 
-  const gvizUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  // Candidate tabs for common tables
+  const aliases: Record<string, string[]> = {
+    MATERI: ['MATERI', 'Materi', 'Bahan Ajar', 'BAHAN AJAR', 'Modul'],
+    NILAI: ['NILAI', 'Nilai', 'Rekap Nilai', 'REKAP NILAI', 'Penilaian Praktik', 'Penilaian'],
+    USERS: ['USERS', 'users', 'MURID', 'Murid', 'Data Siswa', 'Siswa'],
+  };
 
-  try {
-    const res = await fetch(gvizUrl, { method: 'GET' });
-    const statusCode = res.status;
-    const text = await res.text();
+  const candidateNames = aliases[sheetName] || [sheetName];
 
-    if (!res.ok) {
-      return {
-        success: false,
-        data: [],
-        csvText: text.slice(0, 300),
-        statusCode,
-        message: `HTTP ${statusCode}: Gagal membaca sheet ${sheetName}.`,
-      };
-    }
+  for (const tab of candidateNames) {
+    const gvizUrl = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tab)}`;
 
-    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-      return {
-        success: false,
-        data: [],
-        csvText: text.slice(0, 300),
-        statusCode: 403,
-        message: 'Google Spreadsheet bersifat Privat. Ubah akses di menu Bagikan menjadi "Siapa saja yang memiliki tautan".',
-      };
-    }
+    try {
+      const res = await fetch(gvizUrl, { method: 'GET' });
+      const statusCode = res.status;
+      const text = await res.text();
 
-    const rows = parseCSV(text);
-    if (rows.length < 2) {
+      if (!res.ok) continue;
+
+      if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+        return {
+          success: false,
+          data: [],
+          csvText: text.slice(0, 300),
+          statusCode: 403,
+          message: 'Google Spreadsheet bersifat Privat. Ubah akses di menu Bagikan menjadi "Siapa saja yang memiliki tautan".',
+        };
+      }
+
+      if (text.includes('google.visualization.Query.setResponse') && (text.includes('does not exist') || text.includes('invalid_query'))) {
+        continue;
+      }
+
+      const rows = parseCSV(text);
+      if (rows.length < 2) {
+        continue;
+      }
+
+      const headers = rows[0].map((h) => h.trim());
+      const dataList: any[] = [];
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const obj: Record<string, any> = {};
+        headers.forEach((header, idx) => {
+          obj[header] = row[idx] !== undefined ? row[idx] : '';
+        });
+        dataList.push(obj);
+      }
+
       return {
         success: true,
-        data: [],
+        data: dataList,
         csvText: text,
         statusCode,
-        message: `Sheet ${sheetName} kosong.`,
+        message: `Berhasil membaca ${dataList.length} baris dari sheet "${tab}"!`,
       };
+    } catch {
+      continue;
     }
-
-    const headers = rows[0].map((h) => h.trim());
-    const dataList: any[] = [];
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const obj: Record<string, any> = {};
-      headers.forEach((header, idx) => {
-        obj[header] = row[idx] !== undefined ? row[idx] : '';
-      });
-      dataList.push(obj);
-    }
-
-    return {
-      success: true,
-      data: dataList,
-      csvText: text,
-      statusCode,
-      message: `Berhasil membaca ${dataList.length} baris dari sheet ${sheetName}!`,
-    };
-  } catch (err: any) {
-    return {
-      success: false,
-      data: [],
-      csvText: '',
-      statusCode: 0,
-      message: `Gagal membaca sheet ${sheetName}: ${err?.message || ''}`,
-    };
   }
+
+  return {
+    success: false,
+    data: [],
+    csvText: '',
+    statusCode: 404,
+    message: `Sheet "${sheetName}" tidak ditemukan dalam Spreadsheet.`,
+  };
 };
 
 /**

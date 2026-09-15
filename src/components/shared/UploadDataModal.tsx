@@ -15,6 +15,7 @@ import {
   parseCSV,
   downloadFile,
 } from '../../utils/fileUploadTemplates';
+import { Kelas, resolveKelasId } from '../../types';
 
 export type UploadDataType = 'materi' | 'tugas' | 'murid' | 'bankSoal';
 
@@ -23,6 +24,8 @@ interface UploadDataModalProps {
   onClose: () => void;
   type: UploadDataType;
   onImport: (parsedData: any[]) => void;
+  allKelas?: Kelas[];
+  defaultKelasId?: string;
 }
 
 export const UploadDataModal: React.FC<UploadDataModalProps> = ({
@@ -30,12 +33,17 @@ export const UploadDataModal: React.FC<UploadDataModalProps> = ({
   onClose,
   type,
   onImport,
+  allKelas = [],
+  defaultKelasId,
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [rawText, setRawText] = useState<string>('');
   const [showPasteMode, setShowPasteMode] = useState<boolean>(false);
   const [previewRows, setPreviewRows] = useState<any[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [fallbackKelasId, setFallbackKelasId] = useState<string>(
+    defaultKelasId || (allKelas && allKelas[0]?.id) || 'cls-xi-1'
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
@@ -80,6 +88,16 @@ export const UploadDataModal: React.FC<UploadDataModalProps> = ({
 
       const parsed: any[] = [];
 
+      const getColValue = (r: string[], keywords: string[], fallbackIdx: number) => {
+        for (let c = 0; c < headers.length; c++) {
+          const h = headers[c];
+          if (keywords.some((k) => h.includes(k))) {
+            return r[c]?.trim() || '';
+          }
+        }
+        return r[fallbackIdx]?.trim() || '';
+      };
+
       if (type === 'materi') {
         dataRows.forEach((r, idx) => {
           if (!r[0]) return;
@@ -112,19 +130,27 @@ export const UploadDataModal: React.FC<UploadDataModalProps> = ({
         });
       } else if (type === 'murid') {
         dataRows.forEach((r, idx) => {
-          if (!r[1]) return;
-          const nis = r[0] || `24${String(Date.now()).slice(-4)}${idx}`;
-          const name = r[1];
-          const kelasId = r[2]?.startsWith('cls-') ? r[2] : 'cls-xi-1';
-          const jk = r[3]?.toUpperCase() === 'P' ? 'P' : 'L';
-          const email = r[4] || `${name.toLowerCase().replace(/\s+/g, '.')}@siswa.sch.id`;
-          const username = r[5] || name.toLowerCase().replace(/\s+/g, '');
+          const name = getColValue(r, ['name', 'nama', 'siswa'], 1);
+          const rawNis = getColValue(r, ['nis', 'nisn', 'induk', 'nomor'], 0);
+          if (!name && !rawNis) return;
+
+          const nis = rawNis || `24${String(Date.now()).slice(-4)}${idx}`;
+          const rawKelas = getColValue(r, ['kelas', 'rombel', 'tingkat', 'class'], 2);
+          const rawJk = getColValue(r, ['jk', 'gender', 'kelamin', 'sex'], 3);
+          const rawEmail = getColValue(r, ['email', 'surel'], 4);
+          const rawUsername = getColValue(r, ['username', 'user', 'akun'], 5);
+
+          const resolved = resolveKelasId(rawKelas || fallbackKelasId, allKelas, fallbackKelasId);
+          const kelasId = resolved.id;
+          const jk = (rawJk.toUpperCase().startsWith('P') || rawJk.toLowerCase().includes('perempuan') || rawJk.toLowerCase().includes('wanita')) ? 'P' : 'L';
+          const email = rawEmail || `${(name || 'siswa').toLowerCase().replace(/[^a-z0-9]/g, '.')}@siswa.sch.id`;
+          const username = rawUsername || (nis ? `siswa_${nis}` : (name || 'siswa').toLowerCase().replace(/[^a-z0-9]/g, ''));
 
           parsed.push({
             id: `usr-murid-imp-${Date.now()}-${idx}`,
             username,
             role: 'MURID',
-            name,
+            name: name || `Siswa Baru ${idx + 1}`,
             nis,
             kelasId,
             jenisKelamin: jk,
@@ -251,6 +277,40 @@ export const UploadDataModal: React.FC<UploadDataModalProps> = ({
               {templateInfo.header}
             </div>
           </div>
+
+          {/* 1.5 Target Kelas Selector for Murid */}
+          {type === 'murid' && (
+            <div className="p-3.5 bg-sky-50/70 border border-sky-200/80 rounded-2xl space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-sky-950 text-xs">
+                  Target Kelas Standar (digunakan bila baris CSV belum memiliki kolom kelas):
+                </label>
+                <span className="text-[10px] text-sky-800 font-semibold bg-sky-100 px-2 py-0.5 rounded-md">
+                  Deteksi Cerdas
+                </span>
+              </div>
+              <select
+                value={fallbackKelasId}
+                onChange={(e) => setFallbackKelasId(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-sky-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
+              >
+                {allKelas.map((k) => (
+                  <option key={k.id} value={k.id}>
+                    {k.nama} ({k.id})
+                  </option>
+                ))}
+                {!allKelas.some((k) => k.id === 'cls-xi-1') && (
+                  <option value="cls-xi-1">XI 1 (cls-xi-1)</option>
+                )}
+                {!allKelas.some((k) => k.id === 'cls-xi-2') && (
+                  <option value="cls-xi-2">XI 2 (cls-xi-2)</option>
+                )}
+              </select>
+              <p className="text-[11px] text-sky-800/80">
+                Jika di dalam CSV sudah terdapat kolom kelas (misal: "XI 1", "XI 2", "11-1", "cls-xi-1"), sistem akan otomatis memetakan ke kelas yang bersangkutan.
+              </p>
+            </div>
+          )}
 
           {/* 2. File Upload Box */}
           <div className="space-y-2">

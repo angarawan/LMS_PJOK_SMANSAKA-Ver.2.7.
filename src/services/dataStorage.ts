@@ -19,6 +19,7 @@ import {
   JawabanRefleksiMurid,
   SoalRefleksi,
   PengajuanIzin,
+  Pengumuman,
 } from '../types';
 import {
   collection,
@@ -58,6 +59,7 @@ export interface LMSDatabase {
   presensi: PresensiRecord[];
   jurnal: JurnalMengajar[];
   notifikasi: NotifikasiItem[];
+  pengumuman?: Pengumuman[];
   nilai: RekapNilaiMurid[];
   settings: PengaturanSekolah;
   pengajuanIzin?: PengajuanIzin[];
@@ -702,6 +704,34 @@ Zona Latihan Efektif: 65% - 85% dari DNM.`,
       waktu: '3 hari yang lalu',
       tipe: 'pengumuman',
       dibaca: true,
+    },
+  ],
+  pengumuman: [
+    {
+      id: 'ann-1',
+      judul: 'Persiapan Praktik Lapangan & Seragam Olahraga',
+      isi: 'Diberitahukan kepada seluruh siswa Kelas XI bahwa untuk pertemuan minggu ini kita akan melaksanakan materi praktik di lapangan utama. Mohon mengenakan seragam olahraga resmi, sepatu kets yang sesuai, dan membawa botol minum pribadi.',
+      targetRole: 'MURID',
+      targetKelasId: 'ALL',
+      targetKelasNama: 'Semua Kelas',
+      prioritas: 'Penting',
+      guruId: 'usr-guru-1',
+      guruNama: 'Haryono, S.Pd.Jas, M.Or.',
+      tanggalDibuat: '2026-09-10T08:00:00.000Z',
+      dibacaOleh: ['usr-murid-1'],
+    },
+    {
+      id: 'ann-2',
+      judul: 'Penilaian Sumatif Praktik Bola Voli',
+      isi: 'Pengambilan nilai sumatif teknik passing bawah dan passing atas akan dilaksanakan pekan depan. Silakan pelajari kembali video peragaan dan rubrik capaian pembelajaran pada menu Materi.',
+      targetRole: 'MURID',
+      targetKelasId: 'cls-xi-1',
+      targetKelasNama: 'Kelas XI 1',
+      prioritas: 'Biasa',
+      guruId: 'usr-guru-1',
+      guruNama: 'Haryono, S.Pd.Jas, M.Or.',
+      tanggalDibuat: '2026-09-12T09:30:00.000Z',
+      dibacaOleh: [],
     },
   ],
   nilai: [],
@@ -1694,6 +1724,92 @@ class DataStorageService {
     });
   }
 
+  // Pengumuman Helpers & Notifications
+  public savePengumuman(item: Pengumuman) {
+    this.updateDatabase((prev) => {
+      const existing = prev.pengumuman || [];
+      const idx = existing.findIndex((p) => p.id === item.id);
+      let updated: Pengumuman[];
+      if (idx >= 0) {
+        updated = [...existing];
+        updated[idx] = item;
+      } else {
+        updated = [item, ...existing];
+      }
+
+      // If new announcement, generate a notification item for students
+      let updatedNotifikasi = [...(prev.notifikasi || [])];
+      if (idx < 0) {
+        const targetDesc = item.targetKelasNama || (item.targetKelasId && item.targetKelasId !== 'ALL' ? item.targetKelasId : 'Semua Kelas');
+        const notif: NotifikasiItem = {
+          id: `notif-ann-${Date.now()}`,
+          judul: `Pengumuman Guru: ${item.judul}`,
+          pesan: `${item.guruNama} menyiarkan pengumuman (${targetDesc}): "${item.isi.slice(0, 100)}${item.isi.length > 100 ? '...' : ''}"`,
+          waktu: 'Baru saja',
+          tipe: 'pengumuman',
+          dibaca: false,
+          targetRole: 'MURID',
+          targetId: item.id,
+          isUrgentDeadline: item.prioritas === 'Mendesak' || item.prioritas === 'Penting',
+        };
+        updatedNotifikasi = [notif, ...updatedNotifikasi];
+      }
+
+      return {
+        ...prev,
+        pengumuman: updated,
+        notifikasi: updatedNotifikasi,
+      };
+    });
+  }
+
+  public deletePengumuman(id: string) {
+    this.updateDatabase((prev) => ({
+      ...prev,
+      pengumuman: (prev.pengumuman || []).filter((p) => p.id !== id),
+      notifikasi: (prev.notifikasi || []).filter((n) => n.targetId !== id),
+    }));
+  }
+
+  public markPengumumanDibaca(id: string, userId: string) {
+    this.updateDatabase((prev) => {
+      const list = (prev.pengumuman || []).map((p) => {
+        if (p.id === id) {
+          const readers = p.dibacaOleh || [];
+          if (!readers.includes(userId)) {
+            return { ...p, dibacaOleh: [...readers, userId] };
+          }
+        }
+        return p;
+      });
+      const notifList = (prev.notifikasi || []).map((n) => {
+        if (n.targetId === id) {
+          return { ...n, dibaca: true };
+        }
+        return n;
+      });
+      return {
+        ...prev,
+        pengumuman: list,
+        notifikasi: notifList,
+      };
+    });
+  }
+
+  // Delete User helper (Murid / Guru / Admin)
+  public deleteUser(userId: string) {
+    this.updateDatabase((prev) => ({
+      ...prev,
+      users: prev.users.filter((u) => u.id !== userId),
+      presensi: prev.presensi.filter((p) => p.muridId !== userId),
+      penilaianPraktik: (prev.penilaianPraktik || []).filter((p) => p.muridId !== userId),
+      pengumpulanTugas: prev.pengumpulanTugas.filter((t) => t.muridId !== userId),
+      jawabanQuiz: prev.jawabanQuiz.filter((q) => q.muridId !== userId),
+      jawabanRefleksi: (prev.jawabanRefleksi || []).filter((j) => j.muridId !== userId),
+      pengajuanIzin: (prev.pengajuanIzin || []).filter((iz) => iz.muridId !== userId),
+    }));
+  }
+
   // Materi Praktik & Penilaian Multi-Materi helpers
   public addMateriPraktik(judulMateri: string) {
     const trimmed = judulMateri.trim();
@@ -1891,6 +2007,7 @@ class DataStorageService {
       let statusCode = 200;
       let usedMethod: SpreadsheetSyncLog['method'] = 'WEBHOOK_GET';
       let syncMessage = '';
+      let lastErrorMessage = '';
 
       // 1. Direct Spreadsheet URL via GViz CSV
       if (targetUrl.includes('docs.google.com/spreadsheets')) {
@@ -1899,6 +2016,8 @@ class DataStorageService {
         statusCode = gvizUsers.statusCode;
         if (gvizUsers.success && gvizUsers.data.length > 0) {
           rawUsers = gvizUsers.data;
+        } else {
+          lastErrorMessage = gvizUsers.message;
         }
 
         const gvizMateri = await fetchSheetTableViaGViz(targetUrl, 'MATERI');
@@ -1916,11 +2035,15 @@ class DataStorageService {
         statusCode = res.statusCode;
 
         if (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) {
-          rawUsers = res.data.USERS || [];
-          rawMateri = res.data.MATERI || [];
-          rawNilai = res.data.NILAI || [];
+          rawUsers = res.data.USERS || res.data.users || res.data.MURID || res.data.murid || [];
+          rawMateri = res.data.MATERI || res.data.materi || [];
+          rawNilai = res.data.NILAI || res.data.nilai || [];
         } else if (Array.isArray(res.data)) {
           rawUsers = res.data;
+        }
+
+        if (!res.success) {
+          lastErrorMessage = res.message || '';
         }
 
         // Fallback to GViz if Webhook yielded no users and fallback URL exists
@@ -1935,6 +2058,8 @@ class DataStorageService {
               if (mRes.success) rawMateri = mRes.data;
               const nRes = await fetchSheetTableViaGViz(sheetId, 'NILAI');
               if (nRes.success) rawNilai = nRes.data;
+            } else if (!lastErrorMessage) {
+              lastErrorMessage = fallbackRes.message;
             }
           }
         }
@@ -2100,6 +2225,37 @@ class DataStorageService {
       });
 
       const durationMs = Date.now() - startTime;
+
+      if (mappedUsers.length === 0 && mappedMateri.length === 0 && mappedNilai.length === 0) {
+        const failureMsg =
+          lastErrorMessage ||
+          'Tidak ada data yang berhasil ditarik dari Spreadsheet. Pastikan Spreadsheet memiliki data dan dibagikan secara publik (Akses umum: Siapa saja yang memiliki tautan: Pelihat), atau klik "Sambungkan Google" di menu sinkronisasi.';
+
+        const errLog: SpreadsheetSyncLog = {
+          id: `log-${Date.now()}`,
+          timestamp: new Date().toLocaleTimeString('id-ID'),
+          action: 'PULL',
+          method: usedMethod,
+          url: targetUrl,
+          httpStatus: statusCode || 404,
+          durationMs,
+          success: false,
+          recordsCount: 0,
+          message: failureMsg,
+          recommendation: 'Periksa izin akses Spreadsheet ("Siapa saja yang memiliki link: Pelihat") atau jalankan "Uji Koneksi & Diagnostik".',
+        };
+        this.addSyncLog(errLog);
+
+        return {
+          success: false,
+          count: 0,
+          materiCount: 0,
+          nilaiCount: 0,
+          message: failureMsg,
+          log: errLog,
+        };
+      }
+
       syncMessage = `Berhasil menarik data dari Spreadsheet: ${mappedUsers.length} pengguna, ${mappedMateri.length} materi pembelajaran, dan ${mappedNilai.length} rekap nilai!`;
 
       const successLog: SpreadsheetSyncLog = {

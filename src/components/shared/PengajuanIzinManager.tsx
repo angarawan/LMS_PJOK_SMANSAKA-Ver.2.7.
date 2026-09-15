@@ -50,7 +50,7 @@ export const PengajuanIzinManager: React.FC<PengajuanIzinManagerProps> = ({
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<'ALL' | StatusPengajuanIzin>('ALL');
   const [kategoriFilter, setKategoriFilter] = useState<'ALL' | KategoriIzin>('ALL');
-  const [filterKelasId, setFilterKelasId] = useState<string>(selectedKelasId || 'ALL');
+  const [filterKelasId, setFilterKelasId] = useState<string>('ALL');
 
   // Preview Image Modal
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
@@ -76,11 +76,17 @@ export const PengajuanIzinManager: React.FC<PengajuanIzinManagerProps> = ({
       // Kelas filter
       if (filterKelasId !== 'ALL') {
         const itemKelas = (item.kelasId || '').toLowerCase().trim();
+        const itemKelasNama = (item.kelasNama || '').toLowerCase().trim();
         const targetKelas = filterKelasId.toLowerCase().trim();
         const targetKelasObj = (db.kelas || []).find((k) => k.id === filterKelasId);
         const targetNama = (targetKelasObj?.nama || '').toLowerCase().trim();
 
-        if (itemKelas !== targetKelas && (!targetNama || !itemKelas.includes(targetNama))) {
+        const match =
+          itemKelas === targetKelas ||
+          (targetNama && (itemKelas === targetNama || itemKelas.includes(targetNama))) ||
+          (targetNama && (itemKelasNama === targetNama || itemKelasNama.includes(targetNama)));
+
+        if (!match) {
           return false;
         }
       }
@@ -762,16 +768,34 @@ export const PengajuanIzinManager: React.FC<PengajuanIzinManagerProps> = ({
 
       {/* Modal Zoom Gambar */}
       {previewImage && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 bg-slate-950/90 backdrop-blur-md">
-          <div className="relative max-w-4xl w-full bg-slate-900 rounded-3xl overflow-hidden p-4 border border-slate-700 shadow-2xl space-y-3">
-            <div className="flex items-center justify-between pb-3 px-2 border-b border-slate-800 text-white">
+        <div 
+          className="fixed inset-0 z-60 flex items-center justify-center p-3 sm:p-4 bg-slate-950/90 backdrop-blur-md"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div 
+            className="relative max-w-4xl w-full bg-slate-900 rounded-3xl overflow-hidden p-4 border border-slate-700 shadow-2xl space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 px-2 border-b border-slate-800 text-white flex-wrap gap-2">
               <span className="text-sm font-extrabold">{previewImage.title}</span>
-              <button
-                onClick={() => setPreviewImage(null)}
-                className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <a
+                  href={previewImage.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-xl transition flex items-center gap-1.5"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Buka Gambar Penuh</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPreviewImage(null)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <div className="py-2 flex items-center justify-center max-h-[80vh] overflow-auto">
               <img

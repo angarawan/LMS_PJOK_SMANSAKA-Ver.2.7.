@@ -15,6 +15,11 @@ import {
   FileSpreadsheet,
   ArrowUpDown,
   Check,
+  Smartphone,
+  Table as TableIcon,
+  ChevronDown,
+  ChevronUp,
+  User as UserIcon,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { LMSDatabase, dataStorage } from '../../services/dataStorage';
@@ -49,6 +54,8 @@ export const RekapPresensiTable: React.FC<RekapPresensiTableProps> = ({
     'ALL' | 'BERMASALAH' | 'DISIPLIN' | 'PERLU_PERHATIAN'
   >('ALL');
   const [selectedMuridDetail, setSelectedMuridDetail] = useState<User | null>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'matrix'>('cards');
+  const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
 
   const selectedKelasObj = useMemo(() => {
     return (db.kelas || []).find((k) => k.id === selectedKelasId);
@@ -652,29 +659,63 @@ export const RekapPresensiTable: React.FC<RekapPresensiTableProps> = ({
         <div className="p-4 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-black text-slate-800">
-              Matriks Presensi: {displayedStudents.length} Siswa Terdaftar
+              Rekapitulasi Presensi: {displayedStudents.length} Siswa
             </h3>
             <span className="text-xs text-slate-400">
               • {filteredDates.length} Tanggal Pertemuan
             </span>
           </div>
 
-          <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> H (Hadir)
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" /> S (Sakit)
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" /> I (Izin)
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" /> A (Alpa)
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block" /> T (Terlambat)
-            </span>
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* View Mode Toggle */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                id="btn-rekap-view-cards"
+                onClick={() => setViewMode('cards')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'cards'
+                    ? 'bg-white text-indigo-700 shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Tampilan kartu ramah HP dengan rekapitulasi langsung per siswa"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span>Ringkasan HP (Kartu)</span>
+              </button>
+              <button
+                type="button"
+                id="btn-rekap-view-matrix"
+                onClick={() => setViewMode('matrix')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  viewMode === 'matrix'
+                    ? 'bg-white text-indigo-700 shadow-2xs font-extrabold'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+                title="Tampilan matriks tabel lengkap semua tanggal pertemuan"
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+                <span>Matriks Tabel</span>
+              </button>
+            </div>
+
+            <div className="hidden lg:flex items-center gap-3 text-xs font-bold text-slate-600">
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> H (Hadir)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" /> S (Sakit)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block" /> I (Izin)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block" /> A (Alpa)
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block" /> T (Terlambat)
+              </span>
+            </div>
           </div>
         </div>
 
@@ -708,122 +749,318 @@ export const RekapPresensiTable: React.FC<RekapPresensiTableProps> = ({
               )}
             </div>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                  <th className="py-3 px-2 w-[44px] min-w-[44px] max-w-[44px] text-center sticky left-0 bg-slate-50 z-20">No</th>
-                  <th className="py-3 px-3 w-[100px] min-w-[100px] max-w-[100px] sticky left-[44px] bg-slate-50 z-20">NIS</th>
-                  <th className="py-3 px-4 w-[220px] min-w-[220px] max-w-[260px] sticky left-[144px] bg-slate-50 z-20 shadow-[4px_0_10px_-2px_rgba(0,0,0,0.12)] border-r-2 border-slate-300">
-                    Nama Siswa
-                  </th>
+        ) : viewMode === 'cards' ? (
+          /* ========================================================================= */
+          /* TAMPILAN KARTU HP (OPTIMAL UNTUK SMARTPHONE DENGAN REKAPAN JELAS)         */
+          /* ========================================================================= */
+          <div className="p-3 sm:p-4 space-y-3 bg-slate-50/50">
+            <div className="flex items-center justify-between px-1 text-xs text-slate-500 font-medium">
+              <span>Menampilkan {displayedStudents.length} siswa dengan ringkasan presensi lengkap:</span>
+              <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                Mode HP Aktif
+              </span>
+            </div>
 
-                  {/* Dates */}
-                  {filteredDates.map((d, dIdx) => (
-                    <th
-                      key={d}
-                      className="py-3 px-2 text-center min-w-[56px] border-l border-slate-200/60"
-                      title={`Pertemuan ${dIdx + 1}: ${d}`}
-                    >
-                      <div className="font-extrabold text-slate-800">{d.slice(8, 10)}/{d.slice(5, 7)}</div>
-                      <div className="text-[9px] text-slate-400 font-medium">P{dIdx + 1}</div>
-                    </th>
-                  ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {displayedStudents.map((m, idx) => {
+                const st = studentStats[m.id];
+                const isExpanded = expandedStudentId === m.id;
 
-                  {/* Summary Totals */}
-                  <th className="py-3 px-2.5 text-center min-w-[44px] bg-emerald-50/70 border-l border-emerald-200 text-emerald-800 font-black">
-                    H
-                  </th>
-                  <th className="py-3 px-2.5 text-center min-w-[44px] bg-sky-50/70 border-l border-sky-200 text-sky-800 font-black">
-                    S
-                  </th>
-                  <th className="py-3 px-2.5 text-center min-w-[44px] bg-amber-50/70 border-l border-amber-200 text-amber-800 font-black">
-                    I
-                  </th>
-                  <th className="py-3 px-2.5 text-center min-w-[44px] bg-rose-50/70 border-l border-rose-200 text-rose-800 font-black">
-                    A
-                  </th>
-                  <th className="py-3 px-2.5 text-center min-w-[44px] bg-purple-50/70 border-l border-purple-200 text-purple-800 font-black">
-                    T
-                  </th>
-                  <th className="py-3 px-3 text-center min-w-[70px] bg-slate-100 border-l border-slate-200 font-black text-slate-800">
-                    % Hadir
-                  </th>
-                  <th className="py-3 px-4 min-w-[140px] text-center bg-slate-50 border-l border-slate-200">
-                    Status Disiplin
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {displayedStudents.map((m, idx) => {
-                  const st = studentStats[m.id];
-                  return (
-                    <tr
-                      key={m.id}
-                      className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
-                      onClick={() => setSelectedMuridDetail(m)}
-                    >
-                      <td className="py-2.5 px-2 w-[44px] min-w-[44px] max-w-[44px] text-center font-bold text-slate-400 sticky left-0 bg-white group-hover:bg-slate-50 z-10">
-                        {idx + 1}
-                      </td>
-                      <td className="py-2.5 px-3 w-[100px] min-w-[100px] max-w-[100px] font-mono text-slate-500 text-[11px] sticky left-[44px] bg-white group-hover:bg-slate-50 z-10">
-                        {m.nis || '-'}
-                      </td>
-                      <td className="py-2.5 px-4 w-[220px] min-w-[220px] max-w-[260px] font-bold text-slate-800 sticky left-[144px] bg-white group-hover:bg-slate-50 z-10 shadow-[4px_0_10px_-2px_rgba(0,0,0,0.12)] border-r-2 border-slate-300 truncate">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate">{m.name}</span>
-                          {st?.totalA > 0 && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" title="Memiliki catatan Alpa" />
-                          )}
+                return (
+                  <div
+                    key={m.id}
+                    className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs hover:shadow-md transition-all space-y-3"
+                  >
+                    {/* Header Siswa */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-black text-xs shrink-0">
+                          {idx + 1}
                         </div>
-                      </td>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-extrabold text-slate-900 truncate">
+                            {m.name}
+                          </h4>
+                          <span className="text-[11px] font-mono text-slate-500">
+                            NIS: {m.nis || '-'}
+                          </span>
+                        </div>
+                      </div>
 
-                      {/* Attendance per date */}
-                      {filteredDates.map((d) => {
-                        const item = attendanceLookup[`${m.id}_${d}`];
-                        return (
-                          <td
-                            key={d}
-                            className="py-2 px-1 text-center border-l border-slate-100"
-                            title={item?.keterangan ? `${d}: ${item.keterangan}` : d}
-                          >
-                            {getStatusBadge(item?.status)}
-                          </td>
-                        );
-                      })}
+                      <span
+                        className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-black border shrink-0 ${st?.color}`}
+                      >
+                        {st?.predikat}
+                      </span>
+                    </div>
 
-                      {/* Cumulative Columns */}
-                      <td className="py-2.5 px-2 text-center font-bold text-emerald-800 bg-emerald-50/40 border-l border-emerald-100">
-                        {st?.totalH ?? 0}
-                      </td>
-                      <td className="py-2.5 px-2 text-center font-bold text-sky-800 bg-sky-50/40 border-l border-sky-100">
-                        {st?.totalS ?? 0}
-                      </td>
-                      <td className="py-2.5 px-2 text-center font-bold text-amber-800 bg-amber-50/40 border-l border-amber-100">
-                        {st?.totalI ?? 0}
-                      </td>
-                      <td className="py-2.5 px-2 text-center font-black text-rose-800 bg-rose-50/40 border-l border-rose-100">
-                        {st?.totalA ?? 0}
-                      </td>
-                      <td className="py-2.5 px-2 text-center font-bold text-purple-800 bg-purple-50/40 border-l border-purple-100">
-                        {st?.totalT ?? 0}
-                      </td>
-                      <td className="py-2.5 px-2 text-center font-black text-slate-900 bg-slate-50 border-l border-slate-200">
-                        {st?.persenHadir ?? 0}%
-                      </td>
-                      <td className="py-2.5 px-3 text-center border-l border-slate-200">
-                        <span
-                          className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${st?.color}`}
-                        >
-                          {st?.predikat}
+                    {/* Ringkasan Angka Rekapan (H, S, I, A, T) - Tampil Jelas di HP */}
+                    <div className="grid grid-cols-5 gap-1.5 text-center">
+                      <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-2">
+                        <span className="text-[10px] font-extrabold text-emerald-700 block">H</span>
+                        <span className="text-sm sm:text-base font-black text-emerald-900">
+                          {st?.totalH ?? 0}
                         </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        <span className="text-[8px] text-emerald-600 font-semibold block sm:hidden">Hadir</span>
+                      </div>
+
+                      <div className="bg-sky-50 border border-sky-200/80 rounded-xl p-2">
+                        <span className="text-[10px] font-extrabold text-sky-700 block">S</span>
+                        <span className="text-sm sm:text-base font-black text-sky-900">
+                          {st?.totalS ?? 0}
+                        </span>
+                        <span className="text-[8px] text-sky-600 font-semibold block sm:hidden">Sakit</span>
+                      </div>
+
+                      <div className="bg-amber-50 border border-amber-200/80 rounded-xl p-2">
+                        <span className="text-[10px] font-extrabold text-amber-700 block">I</span>
+                        <span className="text-sm sm:text-base font-black text-amber-900">
+                          {st?.totalI ?? 0}
+                        </span>
+                        <span className="text-[8px] text-amber-600 font-semibold block sm:hidden">Izin</span>
+                      </div>
+
+                      <div className="bg-rose-50 border border-rose-200/80 rounded-xl p-2">
+                        <span className="text-[10px] font-extrabold text-rose-700 block">A</span>
+                        <span className="text-sm sm:text-base font-black text-rose-900">
+                          {st?.totalA ?? 0}
+                        </span>
+                        <span className="text-[8px] text-rose-600 font-semibold block sm:hidden">Alpa</span>
+                      </div>
+
+                      <div className="bg-purple-50 border border-purple-200/80 rounded-xl p-2">
+                        <span className="text-[10px] font-extrabold text-purple-700 block">T</span>
+                        <span className="text-sm sm:text-base font-black text-purple-900">
+                          {st?.totalT ?? 0}
+                        </span>
+                        <span className="text-[8px] text-purple-600 font-semibold block sm:hidden">Telat</span>
+                      </div>
+                    </div>
+
+                    {/* Progress Bar Persentase Kehadiran */}
+                    <div className="space-y-1.5 pt-0.5">
+                      <div className="flex items-center justify-between text-xs font-bold">
+                        <span className="text-slate-600">Tingkat Kehadiran:</span>
+                        <span
+                          className={
+                            (st?.persenHadir ?? 0) >= 80
+                              ? 'text-emerald-700 font-black'
+                              : (st?.persenHadir ?? 0) >= 60
+                              ? 'text-amber-700 font-black'
+                              : 'text-rose-700 font-black'
+                          }
+                        >
+                          {st?.persenHadir ?? 0}% ({st?.totalH ?? 0}/{st?.totalPertemuan ?? 0} Sesi)
+                        </span>
+                      </div>
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            (st?.persenHadir ?? 0) >= 80
+                              ? 'bg-emerald-500'
+                              : (st?.persenHadir ?? 0) >= 60
+                              ? 'bg-amber-500'
+                              : 'bg-rose-500'
+                          }`}
+                          style={{ width: `${Math.min(100, Math.max(0, st?.persenHadir ?? 0))}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Accordion Rincian Status per Tanggal Pertemuan */}
+                    {filteredDates.length > 0 && (
+                      <div className="pt-2 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedStudentId(isExpanded ? null : m.id)}
+                          className="w-full flex items-center justify-between text-xs font-bold text-slate-600 hover:text-indigo-600 py-1 transition cursor-pointer"
+                        >
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                            <span>Rincian {filteredDates.length} Tanggal Pertemuan</span>
+                          </span>
+                          {isExpanded ? (
+                            <ChevronUp className="w-4 h-4 text-slate-400" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-slate-400" />
+                          )}
+                        </button>
+
+                        {isExpanded && (
+                          <div className="mt-2.5 p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex flex-wrap gap-1.5 animate-in fade-in">
+                            {filteredDates.map((d, dIdx) => {
+                              const item = attendanceLookup[`${m.id}_${d}`];
+                              const status = item?.status;
+
+                              let badgeStyle = 'bg-slate-200 text-slate-700 border-slate-300';
+                              if (status === 'H') badgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold';
+                              else if (status === 'S') badgeStyle = 'bg-sky-100 text-sky-800 border-sky-300 font-bold';
+                              else if (status === 'I') badgeStyle = 'bg-amber-100 text-amber-800 border-amber-300 font-bold';
+                              else if (status === 'A') badgeStyle = 'bg-rose-100 text-rose-800 border-rose-300 font-black';
+                              else if (status === 'T') badgeStyle = 'bg-purple-100 text-purple-800 border-purple-300 font-bold';
+
+                              return (
+                                <div
+                                  key={d}
+                                  className={`px-2 py-1 rounded-lg text-[10px] border flex items-center gap-1 ${badgeStyle}`}
+                                  title={item?.keterangan ? `${d}: ${item.keterangan}` : d}
+                                >
+                                  <span className="text-[9px] opacity-75">P{dIdx + 1} ({d.slice(8, 10)}/{d.slice(5, 7)}):</span>
+                                  <span className="font-black">{status || '-'}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Tombol Buka Riwayat Detail */}
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMuridDetail(m)}
+                        className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        <UserIcon className="w-3.5 h-3.5" />
+                        <span>Riwayat & Catatan Lengkap</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          /* ========================================================================= */
+          /* TAMPILAN MATRIKS TABEL LENGKAP (DENGAN RESPONSIVE STICKY UNTUK HP)        */
+          /* ========================================================================= */
+          <div>
+            {/* Hint Geser untuk Layar Kecil */}
+            <div className="md:hidden px-3 py-2 bg-indigo-50 border-b border-indigo-100 text-[11px] text-indigo-800 flex items-center justify-between font-semibold">
+              <span>👉 Geser tabel ke kanan untuk melihat rincian tanggal & kolom rekap (H, S, I, A, T)</span>
+              <span className="text-[10px] bg-indigo-200/80 text-indigo-900 px-1.5 py-0.5 rounded font-black">
+                Swipe
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                    <th className="py-3 px-2 w-[44px] min-w-[44px] max-w-[44px] text-center md:sticky md:left-0 bg-slate-50 z-20">No</th>
+                    <th className="py-3 px-3 w-[90px] min-w-[90px] max-w-[90px] md:sticky md:left-[44px] bg-slate-50 z-20">NIS</th>
+                    <th className="py-3 px-4 w-[200px] min-w-[200px] max-w-[240px] md:sticky md:left-[134px] bg-slate-50 z-20 md:shadow-[4px_0_10px_-2px_rgba(0,0,0,0.12)] md:border-r-2 md:border-slate-300">
+                      Nama Siswa
+                    </th>
+
+                    {/* Dates */}
+                    {filteredDates.map((d, dIdx) => (
+                      <th
+                        key={d}
+                        className="py-3 px-2 text-center min-w-[56px] border-l border-slate-200/60"
+                        title={`Pertemuan ${dIdx + 1}: ${d}`}
+                      >
+                        <div className="font-extrabold text-slate-800">{d.slice(8, 10)}/{d.slice(5, 7)}</div>
+                        <div className="text-[9px] text-slate-400 font-medium">P{dIdx + 1}</div>
+                      </th>
+                    ))}
+
+                    {/* Summary Totals */}
+                    <th className="py-3 px-2.5 text-center min-w-[44px] bg-emerald-50/70 border-l border-emerald-200 text-emerald-800 font-black">
+                      H
+                    </th>
+                    <th className="py-3 px-2.5 text-center min-w-[44px] bg-sky-50/70 border-l border-sky-200 text-sky-800 font-black">
+                      S
+                    </th>
+                    <th className="py-3 px-2.5 text-center min-w-[44px] bg-amber-50/70 border-l border-amber-200 text-amber-800 font-black">
+                      I
+                    </th>
+                    <th className="py-3 px-2.5 text-center min-w-[44px] bg-rose-50/70 border-l border-rose-200 text-rose-800 font-black">
+                      A
+                    </th>
+                    <th className="py-3 px-2.5 text-center min-w-[44px] bg-purple-50/70 border-l border-purple-200 text-purple-800 font-black">
+                      T
+                    </th>
+                    <th className="py-3 px-3 text-center min-w-[70px] bg-slate-100 border-l border-slate-200 font-black text-slate-800">
+                      % Hadir
+                    </th>
+                    <th className="py-3 px-4 min-w-[140px] text-center bg-slate-50 border-l border-slate-200">
+                      Status Disiplin
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {displayedStudents.map((m, idx) => {
+                    const st = studentStats[m.id];
+                    return (
+                      <tr
+                        key={m.id}
+                        className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
+                        onClick={() => setSelectedMuridDetail(m)}
+                      >
+                        <td className="py-2.5 px-2 w-[44px] min-w-[44px] max-w-[44px] text-center font-bold text-slate-400 md:sticky md:left-0 bg-white group-hover:bg-slate-50 z-10">
+                          {idx + 1}
+                        </td>
+                        <td className="py-2.5 px-3 w-[90px] min-w-[90px] max-w-[90px] font-mono text-slate-500 text-[11px] md:sticky md:left-[44px] bg-white group-hover:bg-slate-50 z-10">
+                          {m.nis || '-'}
+                        </td>
+                        <td className="py-2.5 px-4 w-[200px] min-w-[200px] max-w-[240px] font-bold text-slate-800 md:sticky md:left-[134px] bg-white group-hover:bg-slate-50 z-10 md:shadow-[4px_0_10px_-2px_rgba(0,0,0,0.12)] md:border-r-2 md:border-slate-300 truncate">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate">{m.name}</span>
+                            {st?.totalA > 0 && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" title="Memiliki catatan Alpa" />
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Attendance per date */}
+                        {filteredDates.map((d) => {
+                          const item = attendanceLookup[`${m.id}_${d}`];
+                          return (
+                            <td
+                              key={d}
+                              className="py-2 px-1 text-center border-l border-slate-100"
+                              title={item?.keterangan ? `${d}: ${item.keterangan}` : d}
+                            >
+                              {getStatusBadge(item?.status)}
+                            </td>
+                          );
+                        })}
+
+                        {/* Cumulative Columns */}
+                        <td className="py-2.5 px-2 text-center font-bold text-emerald-800 bg-emerald-50/40 border-l border-emerald-100">
+                          {st?.totalH ?? 0}
+                        </td>
+                        <td className="py-2.5 px-2 text-center font-bold text-sky-800 bg-sky-50/40 border-l border-sky-100">
+                          {st?.totalS ?? 0}
+                        </td>
+                        <td className="py-2.5 px-2 text-center font-bold text-amber-800 bg-amber-50/40 border-l border-amber-100">
+                          {st?.totalI ?? 0}
+                        </td>
+                        <td className="py-2.5 px-2 text-center font-black text-rose-800 bg-rose-50/40 border-l border-rose-100">
+                          {st?.totalA ?? 0}
+                        </td>
+                        <td className="py-2.5 px-2 text-center font-bold text-purple-800 bg-purple-50/40 border-l border-purple-100">
+                          {st?.totalT ?? 0}
+                        </td>
+                        <td className="py-2.5 px-2 text-center font-black text-slate-900 bg-slate-50 border-l border-slate-200">
+                          {st?.persenHadir ?? 0}%
+                        </td>
+                        <td className="py-2.5 px-3 text-center border-l border-slate-200">
+                          <span
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${st?.color}`}
+                          >
+                            {st?.predikat}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

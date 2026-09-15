@@ -38,11 +38,15 @@ export function downloadMateriOffline(materi: Materi) {
     body {
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       color: #1e293b;
-      line-height: 1.6;
+      line-height: 1.7;
       max-width: 800px;
       margin: 0 auto;
       padding: 24px;
       background: #f8fafc;
+    }
+    p, .content-text, .box > div {
+      text-align: justify;
+      text-justify: inter-word;
     }
     .container {
       background: #ffffff;
@@ -163,13 +167,13 @@ export function downloadMateriOffline(materi: Materi) {
     ${materi.tujuanPembelajaran ? `
     <div class="box box-tujuan">
       <div class="box-title text-emerald">1. Capaian & Tujuan Pembelajaran (IKTP):</div>
-      <div>${materi.tujuanPembelajaran}</div>
+      <div style="text-align: justify;">${materi.tujuanPembelajaran}</div>
     </div>` : ''}
 
     ${materi.deskripsi ? `
     <div class="box box-uraian">
-      <div class="box-title text-slate">2. Uraian Materi & Konsep Gerak:</div>
-      <div style="white-space: pre-line;">${materi.deskripsi}</div>
+      <div class="box-title text-slate">2. ${materi.judulDeskripsi || materi.namaSubMenuUraian || 'Uraian Materi & Konsep Gerak'}:</div>
+      <div style="white-space: pre-line; text-align: justify;">${materi.deskripsi}</div>
     </div>` : ''}
 
     ${materi.gambarUrl ? `
@@ -180,9 +184,15 @@ export function downloadMateriOffline(materi: Materi) {
 
     ${cleanMateriInti ? `
     <div class="box box-inti">
-      <div class="box-title text-indigo">3. Materi Inti & Panduan Pelaksanaan Teknik:</div>
-      <div style="white-space: pre-line; line-height: 1.7;">${cleanMateriInti}</div>
+      <div class="box-title text-indigo">3. ${materi.judulMateriInti || materi.namaSubMenuInti || 'Materi Inti & Panduan Pelaksanaan Teknik'}:</div>
+      <div style="white-space: pre-line; line-height: 1.7; text-align: justify;">${cleanMateriInti}</div>
     </div>` : ''}
+
+    ${(materi.kolomKustom || []).map((kolom, i) => `
+    <div class="box" style="background: #fffbeb; border-color: #fde68a;">
+      <div class="box-title text-amber">${i + 4}. ${kolom.label || 'Sub-Materi Tambahan'}${kolom.subJudul ? ` (${kolom.subJudul})` : ''}:</div>
+      <div style="white-space: pre-line; line-height: 1.7; text-align: justify;">${kolom.isi}</div>
+    </div>`).join('')}
 
     ${materi.aktivitasMurid ? `
     <div class="box box-aktivitas">
@@ -227,11 +237,11 @@ Laporan Kebugaran Jasmani Mandiri,Portofolio Kebugaran Jasmani,Lakukan pencatata
   },
   murid: {
     filename: 'template_import_data_murid_pjok.csv',
-    header: 'nis,name,kelasId,jenisKelamin,email,username',
-    sample: `240108,Hafiz Maulana,cls-xi-1,L,hafiz.m@siswa.sch.id,hafiz
-240109,Intan Permatasari,cls-xi-1,P,intan.p@siswa.sch.id,intan
-240110,Joko Susilo,cls-xi-2,L,joko.s@siswa.sch.id,joko`,
-    description: 'Format CSV dengan kolom: NIS, Nama Lengkap Siswa, ID Kelas (cls-xi-1 / cls-xi-2 / cls-xi-3), Jenis Kelamin (L/P), Email (Opsional), Username.',
+    header: 'nis,name,kelas,jenisKelamin,email,username',
+    sample: `240108,Hafiz Maulana,XI 1,L,hafiz.m@siswa.sch.id,hafiz
+240109,Intan Permatasari,XI 1,P,intan.p@siswa.sch.id,intan
+240110,Joko Susilo,XI 2,L,joko.s@siswa.sch.id,joko`,
+    description: 'Format CSV dengan kolom: NIS, Nama Lengkap Siswa, Kelas (bisa nama seperti "XI 1" / "XI 2" atau id seperti "cls-xi-1"), Jenis Kelamin (L/P), Email (Opsional), Username.',
   },
   bankSoal: {
     filename: 'template_import_bank_soal_pjok.csv',
