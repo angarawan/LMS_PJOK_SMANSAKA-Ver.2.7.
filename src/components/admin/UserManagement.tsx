@@ -211,6 +211,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ db, initialTab =
           kelas: updatedKelas,
         };
       });
+
+      dataStorage.logActivity({
+        category: 'USER_UPDATE',
+        actorName: 'Administrator',
+        actorRole: 'ADMIN',
+        targetName: formData.name || editingUser.name,
+        targetRole: editingUser.role,
+        targetId: editingUser.id,
+        action: `Pembaruan Akun (${editingUser.role})`,
+        details: `Data akun '${formData.name || editingUser.name}' (${editingUser.role}) berhasil diperbarui oleh Administrator.`,
+        status: 'SUCCESS',
+        metadata: { role: editingUser.role, userId: editingUser.id },
+      });
+      showToast(`Data akun "${formData.name}" berhasil diperbarui.`);
     } else {
       // Add new
       const newUser: User = {
@@ -249,6 +263,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ db, initialTab =
           kelas: updatedKelas,
         };
       });
+
+      dataStorage.logActivity({
+        category: 'USER_CREATE',
+        actorName: 'Administrator',
+        actorRole: 'ADMIN',
+        targetName: newUser.name,
+        targetRole: newUser.role,
+        targetId: newUser.id,
+        action: `Pembuatan Akun Baru (${newUser.role})`,
+        details: `Akun baru '${newUser.name}' (${newUser.role}) berhasil ditambahkan dengan username '${newUser.username}'.`,
+        status: 'SUCCESS',
+        metadata: { role: newUser.role, userId: newUser.id, username: newUser.username },
+      });
+      showToast(`Akun baru "${newUser.name}" berhasil ditambahkan.`);
     }
 
     setIsAddModalOpen(false);
@@ -260,6 +288,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ db, initialTab =
       ...prev,
       users: prev.users.map((u) => (u.id === user.id ? { ...u, status: nextStatus } : u)),
     }));
+
+    dataStorage.logActivity({
+      category: 'STATUS_CHANGE',
+      actorName: 'Administrator',
+      actorRole: 'ADMIN',
+      targetName: user.name,
+      targetRole: user.role,
+      targetId: user.id,
+      action: `Perubahan Status Akun: ${user.status} ➔ ${nextStatus}`,
+      details: `Status akun '${user.name}' (${user.role}) diubah dari '${user.status}' menjadi '${nextStatus}'.`,
+      status: nextStatus === 'Aktif' ? 'SUCCESS' : 'WARNING',
+      metadata: { role: user.role, userId: user.id, previousStatus: user.status, newStatus: nextStatus },
+    });
+    showToast(`Status ${user.name} diubah menjadi: ${nextStatus}`);
   };
 
   const handleDeleteUser = (user: User) => {
@@ -273,6 +315,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ db, initialTab =
   const confirmDeleteUser = () => {
     if (!userToDelete) return;
     dataStorage.deleteUser(userToDelete.id);
+
+    dataStorage.logActivity({
+      category: 'USER_DELETE',
+      actorName: 'Administrator',
+      actorRole: 'ADMIN',
+      targetName: userToDelete.name,
+      targetRole: userToDelete.role,
+      targetId: userToDelete.id,
+      action: `Penghapusan Akun (${userToDelete.role})`,
+      details: `Akun '${userToDelete.name}' (${userToDelete.role}, username: ${userToDelete.username}) telah dihapus dari sistem.`,
+      status: 'WARNING',
+      metadata: { role: userToDelete.role, userId: userToDelete.id, username: userToDelete.username },
+    });
+
     showToast(`Data ${userToDelete.role === 'MURID' ? 'murid' : 'pengguna'} "${userToDelete.name}" berhasil dihapus.`);
     setUserToDelete(null);
   };
@@ -283,6 +339,20 @@ export const UserManagement: React.FC<UserManagementProps> = ({ db, initialTab =
       ...prev,
       users: prev.users.map((u) => (u.id === resetPassUser.id ? { ...u, password: newPassword } : u)),
     }));
+
+    dataStorage.logActivity({
+      category: 'PASSWORD_RESET',
+      actorName: 'Administrator',
+      actorRole: 'ADMIN',
+      targetName: resetPassUser.name,
+      targetRole: resetPassUser.role,
+      targetId: resetPassUser.id,
+      action: `Reset Password Pengguna (${resetPassUser.role})`,
+      details: `Kata sandi akun '${resetPassUser.name}' (${resetPassUser.username}) direset oleh Administrator.`,
+      status: 'SUCCESS',
+      metadata: { role: resetPassUser.role, userId: resetPassUser.id, username: resetPassUser.username },
+    });
+
     showToast(`Password untuk pengguna ${resetPassUser.name} (${resetPassUser.username}) berhasil direset menjadi: ${newPassword}`);
     setResetPassUser(null);
   };

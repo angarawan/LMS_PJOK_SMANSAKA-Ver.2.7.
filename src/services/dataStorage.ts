@@ -20,6 +20,7 @@ import {
   SoalRefleksi,
   PengajuanIzin,
   Pengumuman,
+  ActivityLog,
 } from '../types';
 import {
   collection,
@@ -69,6 +70,7 @@ export interface LMSDatabase {
   isCleanSlate?: boolean;
   cleanSlateTimestamp?: string;
   isNilaiPresensiReset?: boolean;
+  activityLogs?: ActivityLog[];
 }
 
 const STORAGE_KEY = 'lms_pjok_db_v6_clean';
@@ -205,6 +207,53 @@ const DEFAULT_QUIZ_SOAL: Soal[] = [
   },
 ];
 
+export const INITIAL_CLASSES: Kelas[] = [
+  {
+    id: 'cls-xi-1',
+    nama: 'XI 1',
+    tingkat: 'XI',
+    waliKelasId: 'usr-guru-1',
+    waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
+    guruPengampuId: 'usr-guru-1',
+    guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
+    tahunPelajaran: '2026/2027',
+    totalMurid: 32,
+  },
+  {
+    id: 'cls-xi-2',
+    nama: 'XI 2',
+    tingkat: 'XI',
+    waliKelasId: 'usr-guru-1',
+    waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
+    guruPengampuId: 'usr-guru-1',
+    guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
+    tahunPelajaran: '2026/2027',
+    totalMurid: 30,
+  },
+  {
+    id: 'cls-x-1',
+    nama: 'X 1',
+    tingkat: 'X',
+    waliKelasId: 'usr-guru-1',
+    waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
+    guruPengampuId: 'usr-guru-1',
+    guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
+    tahunPelajaran: '2026/2027',
+    totalMurid: 34,
+  },
+  {
+    id: 'cls-xii-1',
+    nama: 'XII 1',
+    tingkat: 'XII',
+    waliKelasId: 'usr-guru-1',
+    waliKelasNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
+    guruPengampuId: 'usr-guru-1',
+    guruPengampuNama: 'I Ketut Agus Nova Anggarawan, S.Pd., Gr.',
+    tahunPelajaran: '2026/2027',
+    totalMurid: 28,
+  },
+];
+
 export const INITIAL_DATABASE: LMSDatabase = {
   settings: {
     namaSekolah: 'SMA Negeri 1 Tejakula (SMANSAKA)',
@@ -221,7 +270,7 @@ export const INITIAL_DATABASE: LMSDatabase = {
     autoSyncSpreadsheet: true,
   },
   users: DEFAULT_USERS,
-  kelas: [],
+  kelas: INITIAL_CLASSES,
   mataPelajaran: [],
   materi: [],
   tugas: [],
@@ -241,6 +290,18 @@ export const INITIAL_DATABASE: LMSDatabase = {
   isCleanSlate: true,
   cleanSlateTimestamp: new Date().toISOString(),
   isNilaiPresensiReset: true,
+  activityLogs: [
+    {
+      id: 'log-sys-init',
+      timestamp: new Date().toISOString(),
+      category: 'DB_SYNC',
+      actorName: 'Sistem Audit LMS',
+      actorRole: 'SYSTEM',
+      action: 'Inisialisasi Sistem & Modul Log Aktivitas',
+      details: 'Audit trail aktif. Mencatat seluruh aktivitas login pengguna dan modifikasi basis data.',
+      status: 'INFO',
+    },
+  ],
 };
 
 export type FirestoreSyncStatus = 'connecting' | 'synced' | 'syncing' | 'offline' | 'error';
@@ -569,6 +630,7 @@ class DataStorageService {
         'jawabanRefleksi',
         'materiPraktikList',
         'pengajuanIzin',
+        'activityLogs',
       ];
 
       for (const sec of sections) {
@@ -624,6 +686,7 @@ class DataStorageService {
         'jawabanRefleksi',
         'materiPraktikList',
         'pengajuanIzin',
+        'activityLogs',
       ];
 
       const changedSections = sections.filter((sec) => prev[sec] !== next[sec]);
@@ -746,7 +809,8 @@ class DataStorageService {
       if (savedUser) {
         const u = JSON.parse(savedUser);
         if (
-          (u && u.role === 'MURID' && (u.id?.startsWith('usr-murid-') || !u.id)) ||
+          !u ||
+          !u.id ||
           u?.id === 'usr-guru-2' ||
           u?.id === 'usr-guru-3' ||
           u?.username === 'ratna' ||
@@ -795,23 +859,39 @@ class DataStorageService {
         const parsed = JSON.parse(saved);
 
         let loadedUsers: User[] = Array.isArray(parsed?.users) && parsed.users.length > 0 ? parsed.users : DEFAULT_USERS;
-        // Filter out legacy mock teachers and dummy students
+        // Filter out legacy mock teachers
         loadedUsers = loadedUsers.filter((u) => {
           if (u.id === 'usr-guru-2' || u.id === 'usr-guru-3' || u.username === 'ratna' || u.username === 'haryono') return false;
           if (u.name === 'Ratna Sartika, S.Pd.' || u.name === 'Haryono, S.Pd.Jas') return false;
-          if (u.role === 'MURID' && (u.id?.startsWith('usr-murid-') || !u.id)) return false;
+          if (!u.id || !u.name) return false;
           return true;
         });
 
-        // Ensure default staff account is present
+        // Ensure default staff accounts are present
         const hasAdmin = loadedUsers.some((u) => u.id === 'usr-admin-1' || u.username === 'admin');
         if (!hasAdmin) {
-          loadedUsers = [...DEFAULT_USERS, ...loadedUsers];
+          const adminUser = DEFAULT_USERS.find((u) => u.role === 'ADMIN');
+          if (adminUser) loadedUsers.unshift(adminUser);
+        }
+        const hasGuru = loadedUsers.some((u) => u.role === 'GURU');
+        if (!hasGuru) {
+          const guruUser = DEFAULT_USERS.find((u) => u.role === 'GURU');
+          if (guruUser) loadedUsers.push(guruUser);
         }
 
-        // Exclude the 15 mock classes
+        // Ensure student accounts exist so that students can always log in
+        const hasMurid = loadedUsers.some((u) => u.role === 'MURID');
+        if (!hasMurid) {
+          const sampleMurid = DEFAULT_USERS.filter((u) => u.role === 'MURID');
+          loadedUsers = [...loadedUsers, ...sampleMurid];
+        }
+
+        // Exclude the 15 mock classes and ensure initial classes exist
         let loadedKelas: Kelas[] = Array.isArray(parsed?.kelas) ? parsed.kelas : [];
         loadedKelas = loadedKelas.filter((k) => !/^cls-(x|xi|xii)-\d+$/.test(k.id));
+        if (loadedKelas.length === 0) {
+          loadedKelas = INITIAL_CLASSES;
+        }
 
         // Exclude legacy demo subjects
         let loadedMp: MataPelajaran[] = Array.isArray(parsed?.mataPelajaran) ? parsed.mataPelajaran : [];
@@ -838,6 +918,10 @@ class DataStorageService {
         const loadedRefleksi = (Array.isArray(parsed?.refleksi) ? parsed.refleksi : []).filter((r: any) => !legacyMockIds.has(r.id));
         const loadedPraktik = (Array.isArray(parsed?.penilaianPraktik) ? parsed.penilaianPraktik : []).filter((p: any) => !legacyMockIds.has(p.id));
 
+        const loadedLogs = Array.isArray(parsed?.activityLogs) && parsed.activityLogs.length > 0
+          ? parsed.activityLogs
+          : INITIAL_DATABASE.activityLogs;
+
         return {
           ...INITIAL_DATABASE,
           ...parsed,
@@ -861,6 +945,7 @@ class DataStorageService {
           jawabanRefleksi: Array.isArray(parsed?.jawabanRefleksi) ? parsed.jawabanRefleksi : [],
           materiPraktikList: [],
           pengajuanIzin: Array.isArray(parsed?.pengajuanIzin) ? parsed.pengajuanIzin : [],
+          activityLogs: loadedLogs,
           settings: {
             ...INITIAL_DATABASE.settings,
             ...(parsed?.settings || {}),
@@ -1019,6 +1104,192 @@ class DataStorageService {
     this.saveToLocalStorage(cleanDb);
     this.notify();
     this.seedAllToFirestore();
+  }
+
+  // ==========================================
+  // ACTIVITY AUDIT LOGS & DIAGNOSTICS METHODS
+  // ==========================================
+
+  public logActivity(logData: Omit<ActivityLog, 'id' | 'timestamp'>): ActivityLog {
+    const newLog: ActivityLog = {
+      id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      timestamp: new Date().toISOString(),
+      ...logData,
+    };
+
+    this.updateDatabase((prev) => {
+      const existingLogs = Array.isArray(prev.activityLogs) ? prev.activityLogs : [];
+      // Keep up to 300 logs
+      const updatedLogs = [newLog, ...existingLogs].slice(0, 300);
+      return {
+        ...prev,
+        activityLogs: updatedLogs,
+      };
+    });
+
+    return newLog;
+  }
+
+  public getActivityLogs(): ActivityLog[] {
+    return Array.isArray(this.db.activityLogs) ? this.db.activityLogs : [];
+  }
+
+  public clearActivityLogs(): void {
+    this.updateDatabase((prev) => ({
+      ...prev,
+      activityLogs: [
+        {
+          id: `act-clean-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          category: 'DATA_MODIFICATION',
+          actorName: 'Administrator',
+          actorRole: 'ADMIN',
+          action: 'Pembersihan Riwayat Log',
+          details: 'Seluruh riwayat log aktivitas sebelumnya telah dibersihkan oleh Administrator.',
+          status: 'INFO',
+        },
+      ],
+    }));
+  }
+
+  public seedSampleStudents(): void {
+    const sampleStudents = DEFAULT_USERS.filter((u) => u.role === 'MURID');
+    this.updateDatabase((prev) => {
+      const existingMuridUsernames = new Set(
+        (prev.users || []).filter((u) => u.role === 'MURID').map((u) => u.username.toLowerCase())
+      );
+      const toAdd = sampleStudents.filter((s) => !existingMuridUsernames.has(s.username.toLowerCase()));
+
+      let currentKelas = Array.isArray(prev.kelas) && prev.kelas.length > 0 ? prev.kelas : INITIAL_CLASSES;
+
+      return {
+        ...prev,
+        users: [...toAdd, ...(prev.users || [])],
+        kelas: currentKelas,
+      };
+    });
+
+    this.logActivity({
+      category: 'USER_CREATE',
+      actorName: 'Administrator',
+      actorRole: 'ADMIN',
+      action: 'Pemulihan Akun Murid Percontohan',
+      details: 'Menambahkan 3 akun murid aktif percontohan dengan NIS dan kelas terdaftar.',
+      status: 'SUCCESS',
+    });
+  }
+
+  public repairAllMuridAccounts(): { repairedCount: number; message: string } {
+    let repairedCount = 0;
+    this.updateDatabase((prev) => {
+      const defaultKelasId = prev.kelas?.[0]?.id || 'cls-xi-1';
+      const updatedUsers = (prev.users || []).map((u) => {
+        if (u.role === 'MURID') {
+          let modified = false;
+          const updated = { ...u };
+          if (updated.status !== 'Aktif') {
+            updated.status = 'Aktif';
+            modified = true;
+          }
+          if (!updated.password || updated.password.trim() === '') {
+            updated.password = '123456';
+            modified = true;
+          }
+          if (!updated.kelasId || updated.kelasId.trim() === '') {
+            updated.kelasId = defaultKelasId;
+            modified = true;
+          }
+          if (updated.nis) {
+            const cleanNis = updated.nis.trim();
+            if (cleanNis !== updated.nis) {
+              updated.nis = cleanNis;
+              modified = true;
+            }
+          }
+          if (modified) repairedCount++;
+          return updated;
+        }
+        return u;
+      });
+
+      const updatedKelas = Array.isArray(prev.kelas) && prev.kelas.length > 0 ? prev.kelas : INITIAL_CLASSES;
+
+      return {
+        ...prev,
+        users: updatedUsers,
+        kelas: updatedKelas,
+      };
+    });
+
+    this.logActivity({
+      category: 'USER_UPDATE',
+      actorName: 'Administrator',
+      actorRole: 'ADMIN',
+      action: 'Perbaikan Massal Akun Murid',
+      details: `Pemeriksaan otomatis berhasil memeriksa ${repairedCount} akun murid (status aktif, password default '123456', pembersihan spasi, penugasan kelas).`,
+      status: 'SUCCESS',
+    });
+
+    return {
+      repairedCount,
+      message: `Pemeriksaan selesai. Berhasil menstabilkan ${repairedCount} data akun murid. Semua murid berstatus Aktif dengan password default 123456.`,
+    };
+  }
+
+  public diagnoseStudentAccount(identifierOrId: string) {
+    const raw = identifierOrId.trim();
+    const cleanId = raw.toLowerCase();
+    const allUsers = this.db.users || [];
+    const muridList = allUsers.filter((u) => u.role === 'MURID');
+
+    const found = muridList.find(
+      (u) =>
+        u.id === raw ||
+        u.username.toLowerCase() === cleanId ||
+        (u.nis && u.nis.trim().toLowerCase() === cleanId) ||
+        (u.nisn && u.nisn.trim().toLowerCase() === cleanId) ||
+        (u.nip && u.nip.trim().toLowerCase() === cleanId) ||
+        u.name.toLowerCase().includes(cleanId)
+    );
+
+    if (!found) {
+      return {
+        found: false,
+        user: null,
+        issues: [`Akun dengan identitas '${raw}' tidak ditemukan di daftar murid database (Total murid terdaftar: ${muridList.length}).`],
+        canLogin: false,
+        recommendedAction: 'Pastikan NIS atau Username sudah terdaftar di menu Pengguna > Murid atau klik tombol "Pulihkan Akun Murid Percontohan".',
+      };
+    }
+
+    const issues: string[] = [];
+    let canLogin = true;
+
+    if (found.status === 'Nonaktif') {
+      issues.push("Status akun adalah 'Nonaktif'. Siswa ditolak sistem saat mencoba masuk.");
+      canLogin = false;
+    }
+
+    if (!found.kelasId) {
+      issues.push("Akun belum memiliki rombel/kelas yang terhubung (kelasId kosong).");
+    } else {
+      const kelasExists = (this.db.kelas || []).some((k) => k.id === found.kelasId);
+      if (!kelasExists) {
+        issues.push(`Kelas ID '${found.kelasId}' tidak ditemukan di master data kelas.`);
+      }
+    }
+
+    if (found.nis && found.nis !== found.nis.trim()) {
+      issues.push("NIS mengandung karakter spasi tersembunyi di awal atau akhir yang dapat menyebabkan kegagalan login.");
+    }
+
+    return {
+      found: true,
+      user: found,
+      issues,
+      canLogin,
+      recommendedAction: issues.length > 0 ? issues.join(' ') : 'Akun murid dalam kondisi sehat dan siap digunakan login.',
+    };
   }
 
   // Helper getters

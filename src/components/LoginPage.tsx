@@ -47,17 +47,41 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const foundUser = (db.users || []).find(
       (u) =>
         u.username.toLowerCase() === cleanId ||
-        (u.nis && u.nis.toLowerCase() === cleanId) ||
-        (u.nip && u.nip.replace(/\s+/g, '').toLowerCase() === cleanId.replace(/\s+/g, ''))
+        (u.nis && u.nis.trim().toLowerCase() === cleanId) ||
+        (u.nisn && u.nisn.trim().toLowerCase() === cleanId) ||
+        (u.nip && u.nip.replace(/\s+/g, '').toLowerCase() === cleanId.replace(/\s+/g, '')) ||
+        (u.email && u.email.trim().toLowerCase() === cleanId)
     );
 
     if (!foundUser) {
+      dataStorage.logActivity({
+        category: 'LOGIN_FAILED',
+        actorName: identifier.trim(),
+        actorRole: 'GUEST',
+        action: 'Login Gagal: Pengguna Tidak Terdaftar',
+        details: `Percobaan masuk menggunakan ID '${identifier.trim()}' ditolak karena tidak ditemukan di basis data pengguna.`,
+        status: 'FAILED',
+        metadata: { identifier: identifier.trim(), reason: 'USER_NOT_FOUND' },
+      });
       setErrorMsg('Pengguna tidak terdaftar. Periksa kembali Username, NIS, atau NIP.');
       return;
     }
 
     if (foundUser.status === 'Nonaktif') {
-      setErrorMsg('Akun ini dinonaktifkan oleh administrator sekolah.');
+      dataStorage.logActivity({
+        category: 'LOGIN_FAILED',
+        actorName: foundUser.name,
+        actorRole: foundUser.role,
+        actorId: foundUser.id,
+        targetName: foundUser.name,
+        targetRole: foundUser.role,
+        targetId: foundUser.id,
+        action: `Login Gagal: Akun ${foundUser.role} Dinonaktifkan`,
+        details: `Percobaan masuk akun '${foundUser.name}' (${foundUser.role}, NIS/NIP: ${foundUser.nis || foundUser.nip || '-'}) ditolak sistem karena status akun Nonaktif.`,
+        status: 'WARNING',
+        metadata: { identifier: identifier.trim(), userId: foundUser.id, role: foundUser.role, reason: 'ACCOUNT_INACTIVE' },
+      });
+      setErrorMsg('Akun ini dinonaktifkan oleh administrator sekolah. Silakan hubungi admin atau guru pengampu.');
       return;
     }
 
@@ -76,9 +100,37 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       (userNipClean && cleanPass === userNipClean);
 
     if (!isPasswordCorrect) {
+      dataStorage.logActivity({
+        category: 'LOGIN_FAILED',
+        actorName: foundUser.name,
+        actorRole: foundUser.role,
+        actorId: foundUser.id,
+        targetName: foundUser.name,
+        targetRole: foundUser.role,
+        targetId: foundUser.id,
+        action: `Login Gagal: Kata Sandi Tidak Cocok (${foundUser.role})`,
+        details: `Percobaan masuk akun '${foundUser.name}' (${foundUser.role}) gagal karena kata sandi yang dimasukkan salah.`,
+        status: 'FAILED',
+        metadata: { identifier: identifier.trim(), userId: foundUser.id, role: foundUser.role, reason: 'WRONG_PASSWORD' },
+      });
       setErrorMsg('Kata sandi yang Anda masukkan salah. Kata sandi bawaan adalah 123456 (atau NIS/NIP Anda).');
       return;
     }
+
+    // Login success
+    dataStorage.logActivity({
+      category: 'LOGIN_SUCCESS',
+      actorName: foundUser.name,
+      actorRole: foundUser.role,
+      actorId: foundUser.id,
+      targetName: foundUser.name,
+      targetRole: foundUser.role,
+      targetId: foundUser.id,
+      action: `Login Berhasil (${foundUser.role})`,
+      details: `Pengguna '${foundUser.name}' berhasil masuk ke portal ${foundUser.role.toLowerCase()}${foundUser.kelasId ? ` (Kelas: ${foundUser.kelasId})` : ''}.`,
+      status: 'SUCCESS',
+      metadata: { identifier: identifier.trim(), userId: foundUser.id, role: foundUser.role, kelasId: foundUser.kelasId },
+    });
 
     handleSelect(foundUser);
   };
@@ -181,7 +233,50 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             </button>
           </form>
 
-          <div className="mt-4 pt-3 border-t border-slate-800/80 text-center space-y-1">
+          {/* Quick Demo Access Bar */}
+          <div className="mt-4 pt-3 border-t border-slate-800/80">
+            <p className="text-[11px] text-slate-400 mb-2 text-center">Akses Cepat Pengujian Akun:</p>
+            <div className="grid grid-cols-3 gap-1.5 text-[11px]">
+              <button
+                type="button"
+                onClick={() => {
+                  setIdentifier('murid');
+                  setPassword('123456');
+                  setErrorMsg(null);
+                }}
+                className="py-1.5 px-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-emerald-400 border border-slate-700/60 transition-colors font-medium text-center"
+              >
+                Akun Murid
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIdentifier('guru');
+                  setPassword('123456');
+                  setErrorMsg(null);
+                }}
+                className="py-1.5 px-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-sky-400 border border-slate-700/60 transition-colors font-medium text-center"
+              >
+                Akun Guru
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIdentifier('admin');
+                  setPassword('123456');
+                  setErrorMsg(null);
+                }}
+                className="py-1.5 px-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-indigo-400 border border-slate-700/60 transition-colors font-medium text-center"
+              >
+                Akun Admin
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-500 text-center mt-2">
+              Password default semua akun: <code className="text-slate-400 bg-slate-950 px-1 py-0.5 rounded">123456</code>
+            </p>
+          </div>
+
+          <div className="mt-4 pt-2 text-center space-y-1">
             <p className="text-[10px] font-bold text-blue-400/90 tracking-widest uppercase">
               PORTAL LMS PJOK SMAN 1 TEJAKULA 2026
             </p>

@@ -12,6 +12,7 @@ import { UserManagement } from './components/admin/UserManagement';
 import { ClassManagement } from './components/admin/ClassManagement';
 import { SubjectManagement } from './components/admin/SubjectManagement';
 import { SchoolSettings } from './components/admin/SchoolSettings';
+import { ActivityLogView } from './components/admin/ActivityLogView';
 
 // Teacher Components
 import { GuruDashboard } from './components/guru/GuruDashboard';
@@ -197,6 +198,19 @@ export default function App() {
               db={db}
               currentUser={currentUser}
               onOpenSheets={() => setIsSheetsModalOpen(true)}
+            />
+          );
+        case 'log-aktivitas':
+          return (
+            <ActivityLogView
+              db={db}
+              onNavigate={handleNavigate}
+              onTestLoginMurid={(murid) => {
+                setCurrentUser(murid);
+                dataStorage.setCurrentUser(murid);
+                setActiveMenu('dashboard');
+                setActiveSubParam(undefined);
+              }}
             />
           );
         case 'settings':

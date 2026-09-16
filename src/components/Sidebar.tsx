@@ -25,6 +25,7 @@ import {
   Sparkles,
   Camera,
   Megaphone,
+  ShieldAlert,
 } from 'lucide-react';
 import { UserRole, User as UserType } from '../types';
 import { dataStorage } from '../services/dataStorage';
@@ -158,6 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             badge: pendingIzinCount > 0 ? pendingIzinCount : undefined,
           },
           { id: 'nilai', label: 'Penilaian & Rapor', icon: <Award className="w-5 h-5" /> },
+          { id: 'log-aktivitas', label: 'Log & Diagnosa Akses', icon: <ShieldAlert className="w-5 h-5 text-indigo-400" /> },
           { id: 'profil-saya', label: 'Profil Saya', icon: <User className="w-5 h-5" /> },
           { id: 'settings', label: 'Pengaturan Sistem', icon: <Settings className="w-5 h-5" /> },
         ],

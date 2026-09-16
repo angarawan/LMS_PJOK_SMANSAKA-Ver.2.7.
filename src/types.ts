@@ -596,4 +596,34 @@ export function resolveKelasId(
   return { id: fallback.id, nama: fallback.nama };
 }
 
+export type ActivityLogCategory =
+  | 'LOGIN_SUCCESS'
+  | 'LOGIN_FAILED'
+  | 'USER_CREATE'
+  | 'USER_UPDATE'
+  | 'USER_DELETE'
+  | 'PASSWORD_RESET'
+  | 'STATUS_CHANGE'
+  | 'CLASS_ASSIGNMENT'
+  | 'DB_SYNC'
+  | 'DB_RESET'
+  | 'DATA_MODIFICATION';
+
+export interface ActivityLog {
+  id: string;
+  timestamp: string; // ISO string
+  category: ActivityLogCategory;
+  actorName: string;
+  actorRole: UserRole | 'SYSTEM' | 'GUEST';
+  actorId?: string;
+  targetName?: string;
+  targetRole?: UserRole;
+  targetId?: string;
+  action: string;
+  details: string;
+  status: 'SUCCESS' | 'FAILED' | 'WARNING' | 'INFO';
+  ipOrDevice?: string;
+  metadata?: Record<string, any>;
+}
+
 
